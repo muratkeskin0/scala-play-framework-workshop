@@ -1,0 +1,13 @@
+@()
+
+@main("SignUp") {
+
+  <h2>Sign Up</h2>
+
+  <form method="post" action="@routes.TaskListController.signUpValidate()">
+    Username : <input type="text" name="username" >
+    Password : <input type="text" name="password" >
+    <input type="submit">
+  </form>
+
+}

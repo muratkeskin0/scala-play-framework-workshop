@@ -26,4 +26,10 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     Ok(views.html.indexWithMessage("Hello"))
   }
 
+  def todo() = TODO;
+
+  def signUp() = Action {
+    Ok(views.html.signUp())
+  }
+
 }
