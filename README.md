@@ -109,3 +109,91 @@ The `patch` method creates a new sequence by replacing or removing elements at a
 ```scala
 def patch(from: Int, other: Seq[A], replaced: Int): Seq[A]
 
+
+# Play Framework Forms - Quick Guide
+
+A concise guide to working with forms in Scala Play Framework.
+
+## Basic Form Setup
+
+**1. Define case class:**
+```scala
+case class UserData(username: String, email: String, age: Int)
+```
+
+**2. Create form mapping:**
+```scala
+import play.api.data._
+import play.api.data.Forms._
+
+val userForm: Form[UserData] = Form(
+  mapping(
+    "username" -> nonEmptyText(minLength = 3),
+    "email" -> email,
+    "age" -> number(min = 18)
+  )(UserData.apply)(UserData.unapply)
+)
+```
+
+## Controller Actions
+
+**GET - Show form:**
+```scala
+def showForm = Action { implicit request =>
+  Ok(views.html.userForm(userForm))
+}
+```
+
+**POST - Process form:**
+```scala
+def submitForm = Action { implicit request =>
+  userForm.bindFromRequest().fold(
+    formWithErrors => BadRequest(views.html.userForm(formWithErrors)),
+    userData => Redirect("/success").flashing("info" -> "User created!")
+  )
+}
+```
+
+## Twirl Template
+
+```scala
+@(form: Form[UserData])(implicit request: MessagesRequestHeader)
+@import helper._
+
+@helper.form(action = routes.UserController.submitForm()) {
+  @CSRF.formField
+  
+  @helper.inputText(form("username"))
+  @helper.email(form("email"))
+  @helper.inputText(form("age"))
+  
+  <button type="submit">Submit</button>
+}
+```
+
+## Key Features
+
+- **bindFromRequest()** - Extracts and validates form data
+- **fold()** - Handles success/error cases
+- **formWithErrors** - Preserves user input + shows validation errors
+- **@CSRF.formField** - CSRF protection
+- **Flash messages** - One-time notifications
+- **Session** - Persistent user data
+
+## Common Validators
+
+- `nonEmptyText` - Required text field
+- `email` - Valid email format
+- `number(min, max)` - Numeric range
+- `boolean` - Checkbox
+- `text(minLength, maxLength)` - Text length constraints
+
+## Routes
+
+```scala
+GET  /users/new     controllers.UserController.showForm
+POST /users         controllers.UserController.submitForm
+```
+
+That's it! Forms provide type-safe request handling with built-in validation and error management.
+
