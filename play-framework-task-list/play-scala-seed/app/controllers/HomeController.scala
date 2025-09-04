@@ -28,11 +28,11 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
 
   def todo() = TODO;
 
-  def signUp() = Action {
+  def signUp() = Action {implicit request =>
     Ok(views.html.signUp())
   }
 
-  def login() = Action {
+  def login() = Action { implicit request =>
     Ok(views.html.login())
   }
 

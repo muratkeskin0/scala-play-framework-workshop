@@ -18,8 +18,6 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 
 # TaskList controller
 GET     /taskList                  controllers.TaskListController.taskList()
-+ nocsrf
 POST    /signUpValidate            controllers.TaskListController.signUpValidate()
-+ nocsrf
 POST    /loginValidate            controllers.TaskListController.loginValidate()
 
