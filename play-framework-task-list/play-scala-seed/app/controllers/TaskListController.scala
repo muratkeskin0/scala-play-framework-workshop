@@ -28,8 +28,14 @@ class TaskListController @Inject()(val controllerComponents: ControllerComponent
     postVals.map { args =>
       val username = args("username").head
       val password = args("password").head
-      //Ok(s" $username signed up with password : $password")
       Redirect(routes.TaskListController.taskList())
+      //Ok(s" $username signed up with password : $password")
+      if(TaskListInMemoryModel.validateUser(username,password)) {
+        Redirect(routes.TaskListController.taskList())
+      }
+      else{
+        Ok("Error happened")
+      }
     }.getOrElse(Ok("An Error Has Occured"))
   }
 
