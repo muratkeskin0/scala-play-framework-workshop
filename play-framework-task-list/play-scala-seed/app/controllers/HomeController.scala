@@ -32,4 +32,12 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     Ok(views.html.signUp())
   }
 
+  def login() = Action {
+    Ok(views.html.login())
+  }
+
+  def logout() = Action {
+    Redirect(routes.HomeController.login()).withNewSession
+  }
+
 }
