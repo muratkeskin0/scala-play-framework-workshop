@@ -101,5 +101,11 @@ def taskList = Action { request: RequestHeader =>
   `true` or `false` are often used in models/services to signal success/failure of an operation.  
   In functional Scala, returning richer types like `Either` or `Try` is often preferred for more detailed error handling.
 
+## Scala `patch` Method
 
+The `patch` method creates a new sequence by replacing or removing elements at a given position.
+
+**Signature**:
+```scala
+def patch(from: Int, other: Seq[A], replaced: Int): Seq[A]
 
