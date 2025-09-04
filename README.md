@@ -23,5 +23,35 @@ Example: if you are logged into your bank and visit a malicious site, it could m
   - Lives only for the **next request**, then auto-cleared
   - Usage: one-time messages (success, error, logout notice)
   - Automatically cleared after being read once
+ 
+## What is `implicit request` in Play Framework?
+
+### 1. The `request`
+When a user visits your app (e.g., `GET /login`), Play creates a **`request` object**.  
+This object contains everything about the HTTP request:
+- Method (GET, POST, …)
+- URL and query parameters
+- Headers and cookies
+- Session and Flash data
+
+Think of it as the **envelope** for the incoming request.
+
+---
+
+### 2. The word `implicit`
+In Scala, `implicit` means **“automatically provide this value if needed.”**
+
+Normally, if a function needs `request`, you would pass it by hand.  
+But if you write `implicit request`, Play/Scala will automatically supply it to any function that needs it.
+
+---
+
+### 3. Example in a Controller
+Without `implicit`:
+```scala
+def taskList = Action { request: RequestHeader =>
+  Ok(views.html.taskList()(request)) // you must pass request manually
+}
+
 
 
