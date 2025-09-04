@@ -108,6 +108,7 @@ The `patch` method creates a new sequence by replacing or removing elements at a
 **Signature**:
 ```scala
 def patch(from: Int, other: Seq[A], replaced: Int): Seq[A]
+```
 
 
 # Play Framework Forms - Quick Guide
