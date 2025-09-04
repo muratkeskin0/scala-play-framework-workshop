@@ -53,5 +53,24 @@ def taskList = Action { request: RequestHeader =>
   Ok(views.html.taskList()(request)) // you must pass request manually
 }
 
+# Explanation of `addTask` Components (Scala / Play)
+
+- **Action** (`play.api.mvc.Action`) → Defines a controller endpoint that handles HTTP requests and must return a `Result`.  
+- **implicit request** (`Request[AnyContent]`) → Makes the incoming HTTP request object automatically available to functions/views without passing it explicitly.  
+- **request.body.asFormUrlEncoded** (`Option[Map[String, Seq[String]]]`) → Parses the POST body into a map of form fields; `Option` because the body may not be form-encoded.  
+- **getOrElse(Map.empty)** (`Map[String, Seq[String]]`) → Provides a default empty map if the `Option` is `None`, avoiding null errors.  
+- **form.get("task")** (`Option[Seq[String]]`) → Looks up the `"task"` field from the map safely, returns `Some(values)` or `None`.  
+- **headOption** (`Option[String]`) → Gets the first element of a sequence safely, avoiding exceptions on empty lists.  
+- **map(_.trim)** (`Option[String]`) → Applies a function to the value inside `Some`, here trimming whitespace, while leaving `None` untouched.  
+- **request.session.get("username")** (`Option[String]`) → Retrieves a value stored in the session cookie, wrapped in an `Option` because it may not exist.  
+- **Pattern Matching** (`match` expression) → Deconstructs `Option` values (`Some` / `None`) and handles cases clearly with guards like `if task.nonEmpty`.  
+- **Redirect(...)** (`Result`) → Produces an HTTP 303 response telling the browser to request another URL.  
+- **flashing("key" -> "value")** (`Result`) → Adds a one-time message (stored in a cookie) to be shown on the next request.  
+- **Unauthorized("...")** (`Result`) → Returns a 401 HTTP response indicating the user is not authorized.  
+- **Boolean return from addTask** → Signals success (`true`) or failure (`false`), used for branching in the controller.  
+
+---
+
+ Each of these pieces ensures the controller action is **safe (via Option), user-aware (via Session), and user-friendly (via Flash/Redirect)**.
 
 
