@@ -19,7 +19,7 @@ class TaskListController @Inject()(val controllerComponents: ControllerComponent
    * will be called when the application receives a `GET` request with
    * a path of `/`.
    */
-  def taskList() = Action { request =>
+  def taskList() = Action { implicit request =>
     //val tasks = List("code","sleep","eat")  hard coded list
     val usernameOption =  request.session.get("username")
     usernameOption.map { username =>
@@ -28,7 +28,7 @@ class TaskListController @Inject()(val controllerComponents: ControllerComponent
     }.getOrElse(Ok("UnAuthorized User"))
   }
 
-  def signUpValidate() = Action { request =>
+  def signUpValidate() = Action { implicit request =>
     val postVals = request.body.asFormUrlEncoded
     postVals.map { args =>
       val username = args("username").head
@@ -38,12 +38,12 @@ class TaskListController @Inject()(val controllerComponents: ControllerComponent
         Redirect(routes.TaskListController.taskList()).withSession("username" -> username)
       }
       else{
-        Ok("Error happened")
+        Ok("error")
       }
     }.getOrElse(Ok("An Error Has Occured"))
   }
 
-  def loginValidate() = Action { request =>
+  def loginValidate() = Action { implicit request =>
     val postVals = request.body.asFormUrlEncoded
     postVals.map { args =>
       val username = args("username").head
@@ -53,10 +53,53 @@ class TaskListController @Inject()(val controllerComponents: ControllerComponent
         Redirect(routes.TaskListController.taskList()).withSession("username" -> username)
       }
       else{
-        Ok("Error happened")
+        Redirect(routes.HomeController.signUp()).flashing("error" -> "error happened when you were trying to log in")
       }
     }.getOrElse(Ok("An Error Has Occured"))
   }
+
+  def addTask() = Action { implicit request =>
+    val form     = request.body.asFormUrlEncoded.getOrElse(Map.empty)
+    val taskOpt  = form.get("task").flatMap(_.headOption).map(_.trim)
+    val userOpt  = request.session.get("username")
+
+    (userOpt, taskOpt) match {
+      case (Some(username), Some(task)) if task.nonEmpty =>
+        val ok = TaskListInMemoryModel.addTask(username, task)
+        if (ok)
+          Redirect(routes.TaskListController.taskList()).flashing("success" -> "Task added!")
+        else
+          Redirect(routes.TaskListController.taskList()).flashing("error" -> "Could not add task.")
+      case (Some(_), _) =>
+        Redirect(routes.TaskListController.taskList()).flashing("error" -> "Please enter a task.")
+      case _ =>
+        Unauthorized("Unauthorized")
+    }
+  }
+
+  def deleteTask() = Action { implicit request =>
+    val form     = request.body.asFormUrlEncoded.getOrElse(Map.empty)
+    val userOpt  = request.session.get("username")
+    val indexOpt = form.get("index").flatMap(_.headOption).flatMap(_.trim.toIntOption)
+
+    (userOpt, indexOpt) match {
+      case (Some(username), Some(i)) => {
+        val ok = TaskListInMemoryModel.deleteTask(username, i)
+        if (ok)
+          Redirect(routes.TaskListController.taskList()).flashing("success" -> "Task deleted!")
+        else
+          Redirect(routes.TaskListController.taskList()).flashing("error" -> "Could not delete task.")
+      }
+
+      case (Some(_), None) =>
+        Redirect(routes.TaskListController.taskList()).flashing("error" -> "Please choose a valid task to delete.")
+
+      case _ =>
+        Unauthorized("Unauthorized")
+    }
+
+  }
+
 
 
 

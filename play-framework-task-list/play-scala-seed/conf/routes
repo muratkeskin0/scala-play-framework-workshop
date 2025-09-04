@@ -20,4 +20,7 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 GET     /taskList                  controllers.TaskListController.taskList()
 POST    /signUpValidate            controllers.TaskListController.signUpValidate()
 POST    /loginValidate            controllers.TaskListController.loginValidate()
+POST    /addTask                  controllers.TaskListController.addTask()
+POST    /deleteTask                  controllers.TaskListController.deleteTask()
+
 
