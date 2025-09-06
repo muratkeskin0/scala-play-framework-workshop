@@ -16,7 +16,16 @@
 
     </head>
     <body>
-        @flash.get("error")
+        @flash.get("error").map { errorMessage =>
+            <div style="color: red; background-color: #ffebee; padding: 10px; margin: 10px 0; border-radius: 4px;">
+                @errorMessage
+            </div>
+        }
+        @flash.get("success").map { successMessage =>
+            <div style="color: green; background-color: #e8f5e8; padding: 10px; margin: 10px 0; border-radius: 4px;">
+                @successMessage
+            </div>
+        }
         @* And here's where we render the `Html` object containing
          * the page content. *@
         @content

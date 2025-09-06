@@ -11,19 +11,12 @@ import play.api.mvc._
 @Singleton
 class HomeController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
 
-  /**
-   * Create an Action to render an HTML page.
-   *
-   * The configuration in the `routes` file means that this method
-   * will be called when the application receives a `GET` request with
-   * a path of `/`.
-   */
   def index() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.index())
-  }
-
-  def indexWithMessage() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.indexWithMessage("Hello"))
+    // Eğer kullanıcı giriş yapmışsa task listesine yönlendir
+    request.session.get("username") match {
+      case Some(_) => Redirect(routes.TaskController.taskList())
+      case None => Ok(views.html.index())
+    }
   }
 
   def todo() = TODO;

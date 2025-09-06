@@ -4,7 +4,7 @@
 
   <h2>Log in</h2>
 
-  <form method="post" action="@routes.TaskListController.loginValidate()">
+  <form method="post" action="@routes.UserController.loginValidate()">
     @helper.CSRF.formField
     Username : <input type="text" name="username" >
     Password : <input type="text" name="password" >
