@@ -1,12 +1,18 @@
 import com.google.inject.AbstractModule
 import repositories._
 import services._
+import persistence._
 
 class Module extends AbstractModule {
   override def configure(): Unit = {
-    // Buraya binding kurallarını yazıyoruz
+    // Database service binding - en önce bu olmalı
+    bind(classOf[IDatabaseService]).to(classOf[DatabaseService]).asEagerSingleton()
+    
+    // Repository bindings
     bind(classOf[ITaskRepository]).to(classOf[TaskRepository]).asEagerSingleton()
     bind(classOf[IUserRepository]).to(classOf[UserRepository]).asEagerSingleton()
+    
+    // Service bindings
     bind(classOf[ITaskService]).to(classOf[TaskService]).asEagerSingleton()
     bind(classOf[IUserService]).to(classOf[UserService]).asEagerSingleton()
   }

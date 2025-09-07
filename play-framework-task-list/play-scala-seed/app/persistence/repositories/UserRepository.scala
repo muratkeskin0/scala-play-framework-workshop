@@ -4,7 +4,8 @@ import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 import slick.jdbc.SQLServerProfile.api._
 import models._
-import configurations.Users  // senin Users tablon
+import configurations.Users
+import persistence._
 
 trait IUserRepository {
   def create(user: User): Future[Long]                // INSERT → yeni id döner
@@ -15,33 +16,32 @@ trait IUserRepository {
 }
 
 @Singleton
-class UserRepository @Inject() (implicit ec: ExecutionContext) extends IUserRepository {
+class UserRepository @Inject()(dbService: IDatabaseService)(implicit ec: ExecutionContext) extends IUserRepository {
 
-  private val db = Database.forConfig("slick.dbs.default.db") // application.conf içindeki ayar
   private val users = Users.users
 
   override def create(user: User): Future[Long] = {
-    // id AutoInc olduğu için returning ile yeni id’yi alıyoruz
+    // id AutoInc olduğu için returning ile yeni id'yi alıyoruz
     val insert = (users returning users.map(_.id)) += user
-    db.run(insert)
+    dbService.run(insert)
   }
 
   override def get(username: String): Future[Option[User]] = {
-    db.run(users.filter(_.username === username).result.headOption)
+    dbService.run(users.filter(_.username === username).result.headOption)
   }
 
   override def list(): Future[Seq[User]] = {
-    db.run(users.result)
+    dbService.run(users.result)
   }
 
   override def update(user: User): Future[Int] = {
     val q = users.filter(_.id === user.id)
       .map(u => (u.username, u.password))
       .update((user.username, user.password))
-    db.run(q)
+    dbService.run(q)
   }
 
   override def delete(username: String): Future[Int] = {
-    db.run(users.filter(_.username === username).delete)
+    dbService.run(users.filter(_.username === username).delete)
   }
 }
