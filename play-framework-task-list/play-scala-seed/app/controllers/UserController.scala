@@ -12,13 +12,13 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
   def signUpValidate() = Action.async { implicit request =>
     request.body.asFormUrlEncoded match {
       case Some(args) =>
-        val username = args.get("username").flatMap(_.headOption).getOrElse("")
+        val email = args.get("email").flatMap(_.headOption).getOrElse("")
         val password = args.get("password").flatMap(_.headOption).getOrElse("")
 
-        userService.signUp(username, password).map {
+        userService.signUp(email, password).map {
           case Right(_) =>
             Redirect(routes.TaskController.taskList())
-              .withSession("username" -> username)
+              .withSession("email" -> email)
               .flashing("success" -> "Account created successfully!")
           case Left(error) =>
             Redirect(routes.HomeController.signUp())
@@ -33,13 +33,13 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
   def loginValidate() = Action.async { implicit request =>
     request.body.asFormUrlEncoded match {
       case Some(args) =>
-        val username = args.get("username").flatMap(_.headOption).getOrElse("")
+        val email = args.get("email").flatMap(_.headOption).getOrElse("")
         val password = args.get("password").flatMap(_.headOption).getOrElse("")
 
-        userService.login(username, password).map {
+        userService.login(email, password).map {
           case Right(_) =>
             Redirect(routes.TaskController.taskList())
-              .withSession("username" -> username)
+              .withSession("email" -> email)
               .flashing("success" -> "Login successful!")
           case Left(error) =>
             Redirect(routes.HomeController.login())

@@ -9,11 +9,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class TaskController @Inject()(val controllerComponents: ControllerComponents, taskService: ITaskService)(implicit ec: ExecutionContext) extends BaseController {
 
   def taskList() = Action.async { implicit request =>
-    request.session.get("username") match {
+    request.session.get("email") match {
       case None =>
         Future.successful(Unauthorized("Unauthorized"))
-      case Some(username) =>
-        taskService.list(username).map { tasks =>
+      case Some(email) =>
+        taskService.list(email).map { tasks =>
           Ok(views.html.taskList(tasks))
         }.recover { case _ =>
           InternalServerError("Failed to load tasks")
@@ -25,11 +25,11 @@ class TaskController @Inject()(val controllerComponents: ControllerComponents, t
     val form    = request.body.asFormUrlEncoded.getOrElse(Map.empty)
     val rawTask = form.get("task").flatMap(_.headOption).getOrElse("").trim
 
-    request.session.get("username") match {
+    request.session.get("email") match {
       case None =>
         Future.successful(Unauthorized("Unauthorized"))
-      case Some(username) =>
-        taskService.add(username, rawTask).map {
+      case Some(email) =>
+        taskService.add(email, rawTask).map {
           case Right(_)  => Redirect(routes.TaskController.taskList()).flashing("success" -> "Task added!")
           case Left(err) => Redirect(routes.TaskController.taskList()).flashing("error"   -> err.message)
         }.recover { case _ =>
@@ -42,15 +42,15 @@ class TaskController @Inject()(val controllerComponents: ControllerComponents, t
     val form     = request.body.asFormUrlEncoded.getOrElse(Map.empty)
     val indexStr = form.get("index").flatMap(_.headOption).getOrElse("").trim
 
-    request.session.get("username") match {
+    request.session.get("email") match {
       case None =>
         Future.successful(Unauthorized("Unauthorized"))
-      case Some(username) =>
+      case Some(email) =>
         indexStr.toIntOption match {
           case None =>
             Future.successful(Redirect(routes.TaskController.taskList()).flashing("error" -> "Invalid task index"))
           case Some(index) =>
-            taskService.delete(username, index).map {
+            taskService.delete(email, index).map {
               case Right(_)  => Redirect(routes.TaskController.taskList()).flashing("success" -> "Task deleted!")
               case Left(err) => Redirect(routes.TaskController.taskList()).flashing("error"   -> err.message)
             }.recover { case _ =>

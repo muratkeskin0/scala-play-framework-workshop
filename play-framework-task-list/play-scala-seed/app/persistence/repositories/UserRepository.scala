@@ -9,10 +9,11 @@ import persistence._
 
 trait IUserRepository {
   def create(user: User): Future[Long]                // INSERT → yeni id döner
-  def get(username: String): Future[Option[User]]     // SELECT tek user
+  def getByEmail(email: String): Future[Option[User]] // SELECT tek user by email
+  def get(username: String): Future[Option[User]]     // SELECT tek user (backward compatibility)
   def list(): Future[Seq[User]]                       // SELECT *
   def update(user: User): Future[Int]                 // UPDATE → etkilenen satır sayısı
-  def delete(username: String): Future[Int]           // DELETE → etkilenen satır sayısı
+  def delete(email: String): Future[Int]              // DELETE → etkilenen satır sayısı
 }
 
 @Singleton
@@ -26,8 +27,13 @@ class UserRepository @Inject()(dbService: IDatabaseService)(implicit ec: Executi
     dbService.run(insert)
   }
 
+  override def getByEmail(email: String): Future[Option[User]] = {
+    dbService.run(users.filter(_.email === email).result.headOption)
+  }
+
   override def get(username: String): Future[Option[User]] = {
-    dbService.run(users.filter(_.username === username).result.headOption)
+    // Backward compatibility - treat username as email
+    getByEmail(username)
   }
 
   override def list(): Future[Seq[User]] = {
@@ -36,12 +42,12 @@ class UserRepository @Inject()(dbService: IDatabaseService)(implicit ec: Executi
 
   override def update(user: User): Future[Int] = {
     val q = users.filter(_.id === user.id)
-      .map(u => (u.username, u.password))
-      .update((user.username, user.password))
+      .map(u => (u.email, u.password))
+      .update((user.email, user.password))
     dbService.run(q)
   }
 
-  override def delete(username: String): Future[Int] = {
-    dbService.run(users.filter(_.username === username).delete)
+  override def delete(email: String): Future[Int] = {
+    dbService.run(users.filter(_.email === email).delete)
   }
 }
