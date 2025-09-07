@@ -1,62 +1,46 @@
 package repositories
 
 import javax.inject._
-import scala.collection.concurrent.TrieMap
-import scala.collection.mutable.ListBuffer
+import scala.concurrent.{ExecutionContext, Future}
+import slick.jdbc.SQLServerProfile.api._
 import models._
+import configurations.Tasks
 
 trait ITaskRepository {
-  def getAll(username: String): Seq[Task]
-  def add(task: Task): Boolean
-  def delete(username: String, index: Int): Boolean
-  def get(username: String, index: Int): Option[Task]
-  def update(username: String, index: Int, task: Task): Boolean
+  def getAll(userId: Long): Future[Seq[Task]]
+  def add(task: Task): Future[Long]
+  def delete(taskId: Long): Future[Int]
+  def get(taskId: Long): Future[Option[Task]]
+  def update(task: Task): Future[Int]
 }
 
 @Singleton
-class TaskRepository @Inject()() extends ITaskRepository {
+class TaskRepository @Inject()(implicit ec: ExecutionContext) extends ITaskRepository {
 
-  private val store: TrieMap[String, ListBuffer[Task]] = TrieMap.empty
+  private val db = Database.forConfig("slick.dbs.default.db")
+  private val tasks = Tasks.tasks
 
-  override def getAll(username: String): Seq[Task] =
-    store.getOrElseUpdate(username, ListBuffer.empty).synchronized {
-      store(username).toList
-    }
-
-  override def add(task: Task): Boolean = {
-    val buf = store.getOrElseUpdate(task.username, ListBuffer.empty)
-    buf.synchronized {
-      buf += task
-      true
-    }
+  override def getAll(userId: Long): Future[Seq[Task]] = {
+    db.run(tasks.filter(_.userId === userId).result)
   }
 
-  override def delete(username: String, index: Int): Boolean = {
-    val buf = store.getOrElse(username, ListBuffer.empty)
-    buf.synchronized {
-      if (index >= 0 && index < buf.length) {
-        buf.remove(index)
-        true
-      } else false
-    }
+  override def add(task: Task): Future[Long] = {
+    val insert = (tasks returning tasks.map(_.id)) += task
+    db.run(insert)
   }
 
-  override def get(username: String, index: Int): Option[Task] = {
-    val tasks = store.getOrElse(username, ListBuffer.empty)
-    tasks.synchronized {
-      if (index >= 0 && index < tasks.length) {
-        Some(tasks(index))
-      } else None
-    }
+  override def delete(taskId: Long): Future[Int] = {
+    db.run(tasks.filter(_.id === taskId).delete)
   }
 
-  override def update(username: String, index: Int, task: Task): Boolean = {
-    val buf = store.getOrElse(username, ListBuffer.empty)
-    buf.synchronized {
-      if (index >= 0 && index < buf.length) {
-        buf.update(index, task)
-        true
-      } else false
-    }
+  override def get(taskId: Long): Future[Option[Task]] = {
+    db.run(tasks.filter(_.id === taskId).result.headOption)
+  }
+
+  override def update(task: Task): Future[Int] = {
+    val q = tasks.filter(_.id === task.id)
+      .map(t => (t.userId, t.description))
+      .update((task.userId, task.description))
+    db.run(q)
   }
 }

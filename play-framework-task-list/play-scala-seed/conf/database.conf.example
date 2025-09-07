@@ -1,0 +1,11 @@
+# Database Configuration Example
+# Bu dosyayı kopyalayıp database.conf olarak adlandırın ve kendi veritabanı bilgilerinizi girin
+
+slick.dbs.default.profile = "slick.jdbc.SQLServerProfile$"
+slick.dbs.default.db {
+  driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+  url = "jdbc:sqlserver://localhost;instanceName=SQLEXPRESS;databaseName=todo;encrypt=true;trustServerCertificate=true;multipleActiveResultSets=true"
+  user = "your_username"
+  password = "your_password"
+  connectionPool = "HikariCP"
+}

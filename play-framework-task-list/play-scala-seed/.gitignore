@@ -7,3 +7,6 @@ target
 /.project
 /.settings
 /RUNNING_PID
+
+# Database configuration with sensitive information
+conf/database.conf

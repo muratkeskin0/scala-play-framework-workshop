@@ -1,36 +1,47 @@
 package repositories
 
 import javax.inject._
-import scala.collection.concurrent.TrieMap
+import scala.concurrent.{ExecutionContext, Future}
+import slick.jdbc.SQLServerProfile.api._
 import models._
+import configurations.Users  // senin Users tablon
 
 trait IUserRepository {
-  def create(user: User): Boolean                 // C: kullanıcı yoksa ekler
-  def get(username: String): Option[User]         // R: tek kullanıcıyı getir
-  def list(): Seq[User]                           // R: tüm kullanıcılar
-  def update(user: User): Boolean                 // U: varsa günceller
-  def delete(username: String): Boolean           // D: siler
+  def create(user: User): Future[Long]                // INSERT → yeni id döner
+  def get(username: String): Future[Option[User]]     // SELECT tek user
+  def list(): Future[Seq[User]]                       // SELECT *
+  def update(user: User): Future[Int]                 // UPDATE → etkilenen satır sayısı
+  def delete(username: String): Future[Int]           // DELETE → etkilenen satır sayısı
 }
 
 @Singleton
-class UserRepository @Inject()() extends IUserRepository {
+class UserRepository @Inject() (implicit ec: ExecutionContext) extends IUserRepository {
 
-  // username -> User
-  private val users = TrieMap.empty[String, User]
+  private val db = Database.forConfig("slick.dbs.default.db") // application.conf içindeki ayar
+  private val users = Users.users
 
-  override def create(user: User): Boolean =
-    users.putIfAbsent(user.username, user).isEmpty
+  override def create(user: User): Future[Long] = {
+    // id AutoInc olduğu için returning ile yeni id’yi alıyoruz
+    val insert = (users returning users.map(_.id)) += user
+    db.run(insert)
+  }
 
-  override def get(username: String): Option[User] =
-    users.get(username)
+  override def get(username: String): Future[Option[User]] = {
+    db.run(users.filter(_.username === username).result.headOption)
+  }
 
-  override def list(): Seq[User] =
-    users.values.toSeq
+  override def list(): Future[Seq[User]] = {
+    db.run(users.result)
+  }
 
-  override def update(user: User): Boolean =
-    users.replace(user.username, user).isDefined
+  override def update(user: User): Future[Int] = {
+    val q = users.filter(_.id === user.id)
+      .map(u => (u.username, u.password))
+      .update((user.username, user.password))
+    db.run(q)
+  }
 
-  override def delete(username: String): Boolean =
-    users.remove(username).isDefined
-
+  override def delete(username: String): Future[Int] = {
+    db.run(users.filter(_.username === username).delete)
+  }
 }
