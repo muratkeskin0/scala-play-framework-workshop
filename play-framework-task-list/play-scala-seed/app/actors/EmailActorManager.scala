@@ -1,41 +1,43 @@
 package actors
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
-import models.{EmailMessage, EmailResult}
-import services.IEmailService
+import akka.actor.{ActorRef, ActorSystem, OneForOneStrategy, Props, SupervisorStrategy}
+import akka.pattern.{Backoff, BackoffSupervisor}
 import javax.inject._
-import scala.concurrent.{ExecutionContext, Future}
 
-object EmailActor {
-  case class SendEmail(emailMessage: EmailMessage)
-  
-  def props(emailService: IEmailService)(implicit ec: ExecutionContext): Props = Props(new EmailActor(emailService))
-}
+import services.IEmailService
+import models.EmailMessage
 
-class EmailActor(emailService: IEmailService)(implicit ec: ExecutionContext) extends Actor with ActorLogging {
-  import EmailActor._
-  
-  override def receive: Receive = {
-    case SendEmail(emailMessage) =>
-      log.info(s"Sending email to ${emailMessage.to} with subject: ${emailMessage.subject}")
-      
-      emailService.sendEmail(emailMessage).onComplete { result =>
-        result match {
-          case scala.util.Success(emailResult) =>
-            log.info(s"Email sent successfully to ${emailMessage.to}. MessageId: ${emailResult.messageId}")
-          case scala.util.Failure(exception) =>
-            log.error(s"Failed to send email to ${emailMessage.to}: ${exception.getMessage}")
-        }
-      }
-  }
-}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 @Singleton
 class EmailActorManager @Inject()(emailService: IEmailService, actorSystem: ActorSystem)(implicit ec: ExecutionContext) {
-  
-  private val emailActor: ActorRef = actorSystem.actorOf(EmailActor.props(emailService), "email-actor")
-  
-  def sendEmail(emailMessage: EmailMessage): Unit = {
-    emailActor ! EmailActor.SendEmail(emailMessage)
-  }
+
+  private val childProps: Props = EmailActor.props(emailService)
+
+  private val supervisorProps: Props =
+    BackoffSupervisor.props(
+      Backoff
+        .onFailure(
+          childProps,
+          childName    = "email-actor",
+          minBackoff   = 1.second,
+          maxBackoff   = 30.seconds,
+          randomFactor = 0.2
+        )
+        .withSupervisorStrategy(
+          OneForOneStrategy(loggingEnabled = false) {
+            case _: java.net.ConnectException      => SupervisorStrategy.Restart
+            case _: javax.mail.SendFailedException => SupervisorStrategy.Resume
+            case _: IllegalArgumentException       => SupervisorStrategy.Stop
+            case _                                 => SupervisorStrategy.Restart
+          }
+        )
+    )
+
+  private val supervisorRef: ActorRef =
+    actorSystem.actorOf(supervisorProps, "email-actor-supervisor")
+
+  def sendEmail(emailMessage: EmailMessage): Unit =
+    supervisorRef ! EmailActor.SendEmail(emailMessage)
 }

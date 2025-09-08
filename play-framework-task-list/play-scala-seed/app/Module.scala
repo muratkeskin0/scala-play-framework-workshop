@@ -3,6 +3,7 @@ import repositories._
 import services._
 import persistence._
 import actors._
+import schedulers._
 
 class Module extends AbstractModule {
   override def configure(): Unit = {
@@ -22,5 +23,6 @@ class Module extends AbstractModule {
     
     // Actor bindings
     bind(classOf[EmailActorManager]).asEagerSingleton()
+    bind(classOf[TaskReminderScheduler]).asEagerSingleton()
   }
 }

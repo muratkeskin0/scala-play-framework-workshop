@@ -31,6 +31,7 @@ trait ITaskService {
   def delete(username: String, index: Int): Future[Either[TaskError, Unit]]
   def get(username: String, index: Int): Future[Either[TaskError, Task]]
   def update(username: String, index: Int, taskDescription: String): Future[Either[TaskError, Task]]
+  def countByEmails(emails: Seq[String]): Future[Map[String, Int]]
 }
 
 @Singleton
@@ -122,6 +123,23 @@ class TaskService @Inject()(taskRepo: ITaskRepository, userRepo: IUserRepository
           val updated = current.copy(description = trimmed) // userId/id aynı kalır
           taskRepo.update(updated).map { affected =>
             if (affected > 0) Right(updated) else Left(TaskNotFound)
+          }
+        }
+      }
+    }
+  }
+
+  /** Çoklu kullanıcı için toplu task sayısı getir */
+  override def countByEmails(emails: Seq[String]): Future[Map[String, Int]] = {
+    if (emails.isEmpty) Future.successful(Map.empty)
+    else {
+      // Kullanıcıları tek seferde çekip email->id haritası kur
+      userRepo.list().flatMap { users =>
+        val selected = users.filter(u => emails.contains(u.email))
+        val emailToId = selected.map(u => u.email -> u.id).toMap
+        taskRepo.countByUserIds(emailToId.values.toSeq).map { uidToCount =>
+          emailToId.map { case (email, uid) =>
+            email -> uidToCount.getOrElse(uid, 0)
           }
         }
       }

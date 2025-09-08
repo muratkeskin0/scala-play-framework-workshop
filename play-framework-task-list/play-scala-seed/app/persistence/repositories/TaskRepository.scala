@@ -13,6 +13,7 @@ trait ITaskRepository {
   def delete(taskId: Long): Future[Int]
   def get(taskId: Long): Future[Option[Task]]
   def update(task: Task): Future[Int]
+  def countByUserIds(userIds: Seq[Long]): Future[Map[Long, Int]]
 }
 
 @Singleton
@@ -42,5 +43,17 @@ class TaskRepository @Inject()(dbService: IDatabaseService)(implicit ec: Executi
       .map(t => (t.userId, t.description))
       .update((task.userId, task.description))
     dbService.run(q)
+  }
+
+  override def countByUserIds(userIds: Seq[Long]): Future[Map[Long, Int]] = {
+    if (userIds.isEmpty) Future.successful(Map.empty)
+    else {
+      val q = tasks
+        .filter(_.userId inSet userIds)
+        .groupBy(_.userId)
+        .map { case (uid, rows) => uid -> rows.length }
+        .result
+      dbService.run(q).map(_.toMap)
+    }
   }
 }

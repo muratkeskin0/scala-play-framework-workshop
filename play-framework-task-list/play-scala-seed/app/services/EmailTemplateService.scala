@@ -36,7 +36,7 @@ class EmailTemplateService @Inject()(env: Environment)(implicit ec: ExecutionCon
     EmailMessage(
       to = to,
       subject = s"You have $taskCount pending tasks",
-      body = "", // Will be generated from template
+      body = "", // Body'yi boş bırakıyoruz; sayı subject'ten türetilecek
       emailType = EmailType.TaskReminder
     )
   }
@@ -125,7 +125,7 @@ class EmailTemplateService @Inject()(env: Environment)(implicit ec: ExecutionCon
         
       case EmailType.TaskReminder =>
         val username = emailMessage.to.split("@").head
-        val taskCount = extractTaskCount(emailMessage.body)
+        val taskCount = extractTaskCountFromSubject(emailMessage.subject)
         template
           .replace("{{username}}", username)
           .replace("{{taskCount}}", taskCount.toString)
@@ -151,8 +151,8 @@ class EmailTemplateService @Inject()(env: Environment)(implicit ec: ExecutionCon
       .trim
   }
 
-  private def extractTaskCount(body: String): Int = {
-    val pattern = "You have (\\d+) pending task".r
-    pattern.findFirstMatchIn(body).map(_.group(1).toInt).getOrElse(0)
+  private def extractTaskCountFromSubject(subject: String): Int = {
+    val pattern = "You have (\\d+) pending tasks?".r
+    pattern.findFirstMatchIn(subject).map(_.group(1).toInt).getOrElse(0)
   }
 }
