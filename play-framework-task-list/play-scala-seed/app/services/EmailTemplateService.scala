@@ -36,7 +36,7 @@ class EmailTemplateService @Inject()(env: Environment)(implicit ec: ExecutionCon
     EmailMessage(
       to = to,
       subject = s"You have $taskCount pending tasks",
-      body = "", // Body'yi boş bırakıyoruz; sayı subject'ten türetilecek
+      body = "", // Leave body empty; count will be derived from subject
       emailType = EmailType.TaskReminder
     )
   }

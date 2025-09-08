@@ -125,9 +125,6 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
 }
 
 .task-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 20px;
     border-bottom: 1px solid #eee;
     transition: background-color 0.3s ease;
@@ -141,15 +138,62 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     background-color: #f8f9fa;
 }
 
+.task-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
 .task-description {
     flex: 1;
     font-size: 16px;
     color: #2c3e50;
+    margin-right: 15px;
+    word-wrap: break-word;
+    min-width: 0;
 }
 
 .task-actions {
     display: flex;
     gap: 10px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.task-edit-form {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.edit-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.edit-input-group input[type="text"] {
+    flex: 1;
+    margin-right: 0;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+.btn-outline-primary {
+    background-color: transparent;
+    color: #3498db;
+    border: 2px solid #3498db;
+}
+
+.btn-outline-primary:hover {
+    background-color: #3498db;
+    color: white;
 }
 
 /* Add Task Form */

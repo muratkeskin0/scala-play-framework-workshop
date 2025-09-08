@@ -7,7 +7,7 @@ import schedulers._
 
 class Module extends AbstractModule {
   override def configure(): Unit = {
-    // Database service binding - en önce bu olmalı
+    // Database service binding - this should be first
     bind(classOf[IDatabaseService]).to(classOf[DatabaseService]).asEagerSingleton()
     
     // Repository bindings

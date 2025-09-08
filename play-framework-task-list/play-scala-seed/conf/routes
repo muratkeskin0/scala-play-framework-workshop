@@ -18,6 +18,7 @@ GET     /taskList                  controllers.TaskController.taskList()
 POST    /signUpValidate            controllers.UserController.signUpValidate()
 POST    /loginValidate            controllers.UserController.loginValidate()
 POST    /addTask                  controllers.TaskController.addTask()
+POST    /updateTask               controllers.TaskController.updateTask()
 POST    /deleteTask                  controllers.TaskController.deleteTask()
 
 

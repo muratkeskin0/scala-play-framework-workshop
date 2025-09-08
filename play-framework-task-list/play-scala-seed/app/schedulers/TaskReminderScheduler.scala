@@ -8,8 +8,8 @@ import services.{IUserService, ITaskService, IEmailHelperService}
 import play.api.Logger
 
 /**
- * Saatte bir kullanıcıların açık görev sayılarını kontrol eder ve hatırlatma e-postası gönderir.
- * Fire-and-forget gönderim için EmailActorManager dolaylısı olan EmailHelperService kullanılır.
+ * Checks users' open task counts every hour and sends reminder emails.
+ * Uses EmailHelperService which is a wrapper around EmailActorManager for fire-and-forget sending.
  */
 @Singleton
 class TaskReminderScheduler @Inject()(

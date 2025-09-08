@@ -14,7 +14,7 @@
       <form method="post" action="@routes.TaskController.addTask()">
         @helper.CSRF.formField
         <div class="form-group">
-          <input type="text" name="task" placeholder="Enter your new task..." required>
+          <input type="text" name="description" placeholder="Enter your new task..." required>
         </div>
         <button type="submit" class="btn btn-primary">Add Task</button>
       </form>
@@ -28,14 +28,30 @@
           <p>Add your first task above to get started.</p>
         </div>
       } else {
-        @for((task, i) <- tasks.zipWithIndex) {
+        @for(task <- tasks) {
           <div class="task-item">
-            <div class="task-description">@task.description</div>
-            <div class="task-actions">
-              @helper.form(action = routes.TaskController.deleteTask()) {
+            <div class="task-content">
+              <div class="task-description">@task.description</div>
+              <div class="task-actions">
+                <button onclick="toggleEdit(@task.id)" class="btn btn-sm btn-outline-primary">Edit</button>
+                <div style="display: inline;">
+                  @helper.form(action = routes.TaskController.deleteTask()) {
+                    @helper.CSRF.formField
+                    <input type="hidden" name="id" value="@task.id">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this task?')">Delete</button>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="task-edit-form" id="edit-form-@task.id" style="display: none;">
+              @helper.form(action = routes.TaskController.updateTask()) {
                 @helper.CSRF.formField
-                <input type="hidden" name="index" value="@i">
-                <button type="submit" class="btn btn-danger">Delete</button>
+                <input type="hidden" name="id" value="@task.id">
+                <div class="edit-input-group">
+                  <input type="text" name="description" value="@task.description" placeholder="Update task..." required class="form-control">
+                  <button type="submit" class="btn btn-success">Save</button>
+                  <button type="button" onclick="cancelEdit(@task.id)" class="btn btn-secondary">Cancel</button>
+                </div>
               }
             </div>
           </div>
