@@ -1,19 +1,25 @@
 @()(implicit request : RequestHeader, flash : Flash)
 
 @main("Login") {
+  <div class="auth-form">
+    <h2>Welcome Back</h2>
+    <p class="text-center mb-20">Sign in to your Task Manager account</p>
 
-  <h2>Log in</h2>
+    <form method="post" action="@routes.UserController.loginValidate()">
+      @helper.CSRF.formField
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required placeholder="your@@email.com">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="Enter your password">
+      </div>
+      <button type="submit" class="btn btn-primary">Sign In</button>
+    </form>
 
-  <form method="post" action="@routes.UserController.loginValidate()">
-    @helper.CSRF.formField
-    Email : <input type="email" name="email" required placeholder="your@@email.com">
-    Password : <input type="password" name="password" required>
-    <input type="submit" value="Login">
-  </form>
-
-
-  <div>
-    <a href="@routes.HomeController.signUp()">SignUp</a>
+    <div class="auth-links">
+      <p>Don't have an account? <a href="@routes.HomeController.signUp()">Sign up here</a></p>
+    </div>
   </div>
-
 }

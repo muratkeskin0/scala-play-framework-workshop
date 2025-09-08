@@ -1,28 +1,41 @@
 @()(implicit flash:Flash, request: RequestHeader)
 
-@main("Todo App - Welcome") {
-  <div style="text-align: center; padding: 50px 20px;">
-    <h1>📝 Todo App</h1>
-    <p style="font-size: 18px; color: #666; margin: 20px 0;">Organize your tasks and stay productive!</p>
-    
-    <div style="margin: 40px 0;">
-      <a href="@routes.HomeController.login()" style="display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px; font-size: 16px;">
-        Login
-      </a>
-      <a href="@routes.HomeController.signUp()" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px; font-size: 16px;">
-        Sign Up
-      </a>
+@main("Task Manager - Welcome") {
+  <div class="container">
+    <div class="text-center" style="padding: 60px 20px;">
+      <h1 style="font-size: 3rem; margin-bottom: 20px; color: #2c3e50;">📝 Task Manager</h1>
+      <p style="font-size: 1.2rem; color: #7f8c8d; margin-bottom: 40px;">Organize your tasks and stay productive!</p>
+      
+      <div style="margin: 40px 0;">
+        <a href="@routes.HomeController.login()" class="btn btn-primary" style="margin: 10px;">Sign In</a>
+        <a href="@routes.HomeController.signUp()" class="btn btn-success" style="margin: 10px;">Get Started</a>
+      </div>
     </div>
     
-    
-    <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px; margin: 40px auto; max-width: 600px;">
-      <h3>Features:</h3>
-      <ul style="text-align: left; display: inline-block;">
-        <li>✅ Create and manage your tasks</li>
-        <li>✅ Secure user authentication</li>
-        <li>✅ Clean and simple interface</li>
-        <li>✅ Real-time task updates</li>
-      </ul>
+    <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); margin: 40px auto; max-width: 700px;">
+      <h3 class="text-center" style="margin-bottom: 30px; color: #2c3e50;">Why Choose Task Manager?</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+        <div class="text-center">
+          <div style="font-size: 2rem; margin-bottom: 15px;">✅</div>
+          <h4 style="color: #2c3e50; margin-bottom: 10px;">Easy Task Management</h4>
+          <p style="color: #7f8c8d;">Create, organize, and track your tasks effortlessly</p>
+        </div>
+        <div class="text-center">
+          <div style="font-size: 2rem; margin-bottom: 15px;">🔒</div>
+          <h4 style="color: #2c3e50; margin-bottom: 10px;">Secure & Private</h4>
+          <p style="color: #7f8c8d;">Your data is protected with enterprise-grade security</p>
+        </div>
+        <div class="text-center">
+          <div style="font-size: 2rem; margin-bottom: 15px;">📧</div>
+          <h4 style="color: #2c3e50; margin-bottom: 10px;">Smart Reminders</h4>
+          <p style="color: #7f8c8d;">Get email reminders for your pending tasks</p>
+        </div>
+        <div class="text-center">
+          <div style="font-size: 2rem; margin-bottom: 15px;">📱</div>
+          <h4 style="color: #2c3e50; margin-bottom: 10px;">Responsive Design</h4>
+          <p style="color: #7f8c8d;">Works perfectly on desktop, tablet, and mobile</p>
+        </div>
+      </div>
     </div>
   </div>
 }

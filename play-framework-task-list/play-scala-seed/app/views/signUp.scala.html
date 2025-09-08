@@ -1,14 +1,25 @@
 @()(implicit request : RequestHeader, flash : Flash)
 
-@main("SignUp") {
+@main("Sign Up") {
+  <div class="auth-form">
+    <h2>Create Account</h2>
+    <p class="text-center mb-20">Join Task Manager and start organizing your life</p>
 
-  <h2>Sign Up</h2>
+    <form method="post" action="@routes.UserController.signUpValidate()">
+      @helper.CSRF.formField
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required placeholder="your@@email.com">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required minlength="6" placeholder="Minimum 6 characters">
+      </div>
+      <button type="submit" class="btn btn-success">Create Account</button>
+    </form>
 
-  <form method="post" action="@routes.UserController.signUpValidate()">
-    @helper.CSRF.formField
-    Email : <input type="email" name="email" required placeholder="your@@email.com">
-    Password : <input type="password" name="password" required minlength="6" placeholder="Minimum 6 characters">
-    <input type="submit" value="Sign Up">
-  </form>
-
+    <div class="auth-links">
+      <p>Already have an account? <a href="@routes.HomeController.login()">Sign in here</a></p>
+    </div>
+  </div>
 }

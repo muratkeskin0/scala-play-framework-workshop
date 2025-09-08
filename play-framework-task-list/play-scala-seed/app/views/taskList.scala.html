@@ -1,31 +1,46 @@
 @(tasks : Seq[models.Task])(implicit flash : Flash, request : RequestHeader)
 
 @main("Task List") {
+  <div class="container">
+    <div class="nav">
+      <h1>Task Manager</h1>
+      <div class="nav-links">
+        <a href="@routes.HomeController.logout()">Logout</a>
+      </div>
+    </div>
 
-  <h2>Task List</h2>
+    <div class="add-task-form">
+      <h2>Add New Task</h2>
+      <form method="post" action="@routes.TaskController.addTask()">
+        @helper.CSRF.formField
+        <div class="form-group">
+          <input type="text" name="task" placeholder="Enter your new task..." required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Task</button>
+      </form>
+    </div>
 
-    <ul>
-    @for((task, i) <- tasks.zipWithIndex) {
-        <li>
-            @task.description
-            @helper.form(action = routes.TaskController.deleteTask()) {
+    <div class="task-list">
+      <h2>Your Tasks</h2>
+      @if(tasks.isEmpty) {
+        <div class="empty-state">
+          <h3>No tasks yet!</h3>
+          <p>Add your first task above to get started.</p>
+        </div>
+      } else {
+        @for((task, i) <- tasks.zipWithIndex) {
+          <div class="task-item">
+            <div class="task-description">@task.description</div>
+            <div class="task-actions">
+              @helper.form(action = routes.TaskController.deleteTask()) {
                 @helper.CSRF.formField
                 <input type="hidden" name="index" value="@i">
-                <button type="submit">Delete Task</button>
-            }
-        </li>
-    }
-    </ul>
-
-
-    <form method="post" action="@routes.TaskController.addTask()">
-    @helper.CSRF.formField
-    <input type="text" name="task" placeholder="New task">
-    <button type="submit">Add Task</button>
-  </form>
-
-  <div>
-    <a href="@routes.HomeController.logout()">Logout</a>
+                <button type="submit" class="btn btn-danger">Delete</button>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
   </div>
-
 }
