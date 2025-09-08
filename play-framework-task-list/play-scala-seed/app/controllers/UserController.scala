@@ -50,4 +50,5 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
         Future.successful(Ok("An Error Has Occured"))
     }
   }
+
 }

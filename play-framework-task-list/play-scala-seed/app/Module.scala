@@ -2,6 +2,7 @@ import com.google.inject.AbstractModule
 import repositories._
 import services._
 import persistence._
+import actors._
 
 class Module extends AbstractModule {
   override def configure(): Unit = {
@@ -15,5 +16,11 @@ class Module extends AbstractModule {
     // Service bindings
     bind(classOf[ITaskService]).to(classOf[TaskService]).asEagerSingleton()
     bind(classOf[IUserService]).to(classOf[UserService]).asEagerSingleton()
+    bind(classOf[IEmailService]).to(classOf[EmailService]).asEagerSingleton()
+    bind(classOf[IEmailTemplateService]).to(classOf[EmailTemplateService]).asEagerSingleton()
+    bind(classOf[IEmailHelperService]).to(classOf[EmailHelperService]).asEagerSingleton()
+    
+    // Actor bindings
+    bind(classOf[EmailActorManager]).asEagerSingleton()
   }
 }

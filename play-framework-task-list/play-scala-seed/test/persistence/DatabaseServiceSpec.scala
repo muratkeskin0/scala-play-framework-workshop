@@ -39,3 +39,4 @@ class DatabaseServiceSpec extends PlaySpec with ScalaFutures {
     }
   }
 }
+

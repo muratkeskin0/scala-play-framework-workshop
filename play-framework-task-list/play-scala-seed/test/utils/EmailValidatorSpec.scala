@@ -55,3 +55,4 @@ class EmailValidatorSpec extends PlaySpec {
     }
   }
 }
+

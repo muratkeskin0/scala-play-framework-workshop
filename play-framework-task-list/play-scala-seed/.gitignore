@@ -10,3 +10,6 @@ target
 
 # Database configuration with sensitive information
 conf/database.conf
+
+# Email configuration with sensitive information
+conf/email.conf

@@ -29,3 +29,4 @@ class DatabaseService @Inject()(config: Configuration)(implicit ec: ExecutionCon
     }
   }
 }
+

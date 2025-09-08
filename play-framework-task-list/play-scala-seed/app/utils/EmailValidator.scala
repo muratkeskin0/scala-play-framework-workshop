@@ -36,3 +36,4 @@ object EmailValidator {
     if (isValid(normalized)) Some(normalized) else None
   }
 }
+

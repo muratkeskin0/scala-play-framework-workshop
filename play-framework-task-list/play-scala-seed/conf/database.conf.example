@@ -9,3 +9,4 @@ slick.dbs.default.db {
   password = "your_password"
   connectionPool = "HikariCP"
 }
+

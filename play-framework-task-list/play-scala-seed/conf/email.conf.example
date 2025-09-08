@@ -1,0 +1,21 @@
+# Email Configuration Example
+# Bu dosyayı kopyalayıp email.conf olarak adlandırın ve kendi email bilgilerinizi girin
+
+play.mailer {
+  host = "smtp.gmail.com"
+  port = 587
+  ssl = false
+  tls = true
+  user = "your-email@gmail.com"
+  password = "your-app-password"
+  from = "noreply@taskmanager.com"
+  debug = false
+  timeout = 10000
+  connectiontimeout = 10000
+}
+
+# Gmail için App Password kullanın:
+# 1. Google Account Settings > Security > 2-Step Verification
+# 2. App passwords > Generate app password
+# 3. Oluşturulan 16 karakterli şifreyi kullanın
+

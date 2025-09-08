@@ -5,6 +5,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import repositories._
 import models._
 import utils.EmailValidator
+import actors.EmailActorManager
 
 sealed trait UserError { def message: String }
 object UserError {
@@ -33,7 +34,7 @@ trait IUserService {
 }
 
 @Singleton
-class UserService @Inject()(repo: IUserRepository)(implicit ec: ExecutionContext) extends IUserService {
+class UserService @Inject()(repo: IUserRepository, emailHelper: IEmailHelperService)(implicit ec: ExecutionContext) extends IUserService {
   import UserError._
 
   private def validPassword(password: String): Boolean =
@@ -50,8 +51,16 @@ class UserService @Inject()(repo: IUserRepository)(implicit ec: ExecutionContext
             case None =>
               val draft = User(id = 0L, email = normalizedEmail, password = password)
               repo.create(draft).map { newId =>
-                if (newId > 0) Right(draft.copy(id = newId))
-                else Left(AlreadyExists(normalizedEmail))
+                if (newId > 0) {
+                  val createdUser = draft.copy(id = newId)
+                  
+                  // Asenkron olarak welcome email gönder (fire-and-forget)
+                  emailHelper.sendWelcomeEmail(normalizedEmail, normalizedEmail.split("@").head)
+                  
+                  Right(createdUser)
+                } else {
+                  Left(AlreadyExists(normalizedEmail))
+                }
               }
           }
     }
@@ -77,4 +86,5 @@ class UserService @Inject()(repo: IUserRepository)(implicit ec: ExecutionContext
 
   override def list(): Future[Seq[User]] =
     repo.list()
+
 }

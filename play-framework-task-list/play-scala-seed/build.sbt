@@ -18,5 +18,9 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2
 libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick" % "3.5.0",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.5.0",  // Connection pool
-  "com.microsoft.sqlserver" % "mssql-jdbc" % "12.4.2.jre11"  // JDK 17 ile uyumlu
+  "com.microsoft.sqlserver" % "mssql-jdbc" % "12.4.2.jre11",  // JDK 17 ile uyumlu
+  
+  // Email sending
+  "com.typesafe.play" %% "play-mailer" % "8.0.1",
+  "com.typesafe.play" %% "play-mailer-guice" % "8.0.1"
 )
