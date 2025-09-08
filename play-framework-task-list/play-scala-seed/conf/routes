@@ -15,8 +15,11 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 
 # TaskList controller
 GET     /taskList                  controllers.TaskController.taskList()
+GET     /profile                   controllers.UserController.profile()
 POST    /signUpValidate            controllers.UserController.signUpValidate()
 POST    /loginValidate            controllers.UserController.loginValidate()
+POST    /updateProfile            controllers.UserController.updateProfile()
+POST    /changePassword           controllers.UserController.changePassword()
 POST    /addTask                  controllers.TaskController.addTask()
 POST    /updateTask               controllers.TaskController.updateTask()
 POST    /deleteTask                  controllers.TaskController.deleteTask()

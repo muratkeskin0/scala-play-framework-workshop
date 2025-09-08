@@ -24,6 +24,15 @@ object UserError {
   case object InvalidEmail extends UserError {
     val message = "Invalid email format."
   }
+  case object EmailAlreadyExists extends UserError {
+    val message = "Email already exists."
+  }
+  case object WrongCurrentPassword extends UserError {
+    val message = "Current password is incorrect."
+  }
+  case object SameEmail extends UserError {
+    val message = "Email is already the same."
+  }
 }
 
 trait IUserService {
@@ -31,6 +40,8 @@ trait IUserService {
   def login(email: String, password: String): Future[Either[UserError, User]]
   def get(email: String): Future[Option[User]]
   def list(): Future[Seq[User]]
+  def updateEmail(currentEmail: String, newEmail: String): Future[Either[UserError, User]]
+  def changePassword(email: String, currentPassword: String, newPassword: String): Future[Either[UserError, User]]
 }
 
 @Singleton
@@ -86,5 +97,46 @@ class UserService @Inject()(repo: IUserRepository, emailHelper: IEmailHelperServ
 
   override def list(): Future[Seq[User]] =
     repo.list()
+
+  override def updateEmail(currentEmail: String, newEmail: String): Future[Either[UserError, User]] = {
+    EmailValidator.validateAndNormalize(newEmail) match {
+      case None => Future.successful(Left(InvalidEmail))
+      case Some(normalizedNewEmail) =>
+        if (normalizedNewEmail == currentEmail) {
+          Future.successful(Left(SameEmail)) // Same email - show info message
+        } else {
+          // Check if new email already exists
+          repo.getByEmail(normalizedNewEmail).flatMap {
+            case Some(_) => Future.successful(Left(EmailAlreadyExists))
+            case None =>
+              // Get current user and update email
+              repo.getByEmail(currentEmail).flatMap {
+                case Some(user) =>
+                  val updatedUser = user.copy(email = normalizedNewEmail)
+                  repo.update(updatedUser).map { affected =>
+                    if (affected > 0) Right(updatedUser) else Left(InvalidInput)
+                  }
+                case None => Future.successful(Left(NotFound(currentEmail)))
+              }
+          }
+        }
+    }
+  }
+
+  override def changePassword(email: String, currentPassword: String, newPassword: String): Future[Either[UserError, User]] = {
+    if (!validPassword(newPassword)) {
+      Future.successful(Left(InvalidInput))
+    } else {
+      repo.getByEmail(email).flatMap {
+        case Some(user) if user.password == currentPassword =>
+          val updatedUser = user.copy(password = newPassword)
+          repo.update(updatedUser).map { affected =>
+            if (affected > 0) Right(updatedUser) else Left(InvalidInput)
+          }
+        case Some(_) => Future.successful(Left(WrongCurrentPassword))
+        case None => Future.successful(Left(NotFound(email)))
+      }
+    }
+  }
 
 }

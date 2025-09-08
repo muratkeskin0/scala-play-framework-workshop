@@ -20,7 +20,7 @@ class TaskReminderScheduler @Inject()(
 )(implicit ec: ExecutionContext) {
 
   private val initialDelay: FiniteDuration = 1.minute
-  private val interval: FiniteDuration = 1.minute
+  private val interval: FiniteDuration = 1.hour
   private val logger = Logger(this.getClass)
 
   actorSystem.scheduler.scheduleAtFixedRate(initialDelay, interval) { () =>

@@ -56,4 +56,70 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
     )
   }
 
+  def profile() = Action.async { implicit request =>
+    request.session.get("email") match {
+      case None =>
+        Future.successful(Redirect(routes.HomeController.login()).flashing("error" -> "Please login first"))
+      case Some(email) =>
+        userService.get(email).map {
+          case Some(user) => Ok(views.html.profile(user))
+          case None => Redirect(routes.HomeController.login()).flashing("error" -> "User not found")
+        }
+    }
+  }
+
+  def updateProfile() = Action.async { implicit request =>
+    request.session.get("email") match {
+      case None =>
+        Future.successful(Redirect(routes.HomeController.login()).flashing("error" -> "Please login first"))
+      case Some(currentEmail) =>
+        updateProfileForm.bindFromRequest().fold(
+          formWithErrors => {
+            Future.successful(
+              Redirect(routes.UserController.profile())
+                .flashing("error" -> "Please enter a valid email address.")
+            )
+          },
+          profileData => {
+            userService.updateEmail(currentEmail, profileData.email).map {
+              case Right(_) =>
+                Redirect(routes.UserController.profile())
+                  .withSession("email" -> profileData.email)
+                  .flashing("success" -> "Email updated successfully!")
+              case Left(error) =>
+                val messageType = if (error == services.UserError.SameEmail) "info" else "error"
+                Redirect(routes.UserController.profile())
+                  .flashing(messageType -> error.message)
+            }
+          }
+        )
+    }
+  }
+
+  def changePassword() = Action.async { implicit request =>
+    request.session.get("email") match {
+      case None =>
+        Future.successful(Redirect(routes.HomeController.login()).flashing("error" -> "Please login first"))
+      case Some(email) =>
+        changePasswordForm.bindFromRequest().fold(
+          formWithErrors => {
+            Future.successful(
+              Redirect(routes.UserController.profile())
+                .flashing("error" -> "Please check your input and try again.")
+            )
+          },
+          passwordData => {
+            userService.changePassword(email, passwordData.currentPassword, passwordData.newPassword).map {
+              case Right(_) =>
+                Redirect(routes.UserController.profile())
+                  .flashing("success" -> "Password changed successfully!")
+              case Left(error) =>
+                Redirect(routes.UserController.profile())
+                  .flashing("error" -> error.message)
+            }
+          }
+        )
+    }
+  }
+
 }
