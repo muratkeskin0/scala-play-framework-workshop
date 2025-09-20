@@ -4,6 +4,7 @@ import javax.inject._
 import play.api._
 import play.api.mvc._
 import services.UserService
+import security.SecurityModule
 import models.{User, Role}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -12,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
  * application's home page.
  */
 @Singleton
-class HomeController @Inject()(val controllerComponents: ControllerComponents, userService: UserService)(implicit ec: ExecutionContext) extends BaseController {
+class HomeController @Inject()(val controllerComponents: ControllerComponents, userService: UserService, securityModule: SecurityModule)(implicit ec: ExecutionContext) extends BaseController {
 
   def index() = Action { implicit request: Request[AnyContent] =>
     // Eğer kullanıcı giriş yapmışsa task listesine yönlendir
@@ -37,21 +38,13 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents, u
   }
 
   def adminDashboard() = Action.async { implicit request: Request[AnyContent] =>
-    // Check if user is logged in and is admin
-    request.session.get("email") match {
-      case Some(email) =>
-        userService.get(email).map {
-          case Some(user) if user.role == Role.Admin =>
-            // Get all users for admin dashboard
-            userService.list().map { users =>
-              Ok(views.html.admin.dashboard(users))
-            }
-          case _ =>
-            // User not found or not admin - redirect to task list
-            Future.successful(Redirect(routes.TaskController.taskList()).flashing("error" -> "Access denied. Admin privileges required."))
-        }.flatten
-      case None =>
-        Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "Please log in to access this page."))
+    securityModule.requireAdmin(request).flatMap {
+      case Right(adminUser) =>
+        // Get all users for admin dashboard
+        userService.list().map { users =>
+          Ok(views.html.admin.dashboard(users))
+        }
+      case Left(result) => Future.successful(result)
     }
   }
 

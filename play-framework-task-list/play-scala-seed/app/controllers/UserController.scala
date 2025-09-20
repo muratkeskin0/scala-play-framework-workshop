@@ -7,11 +7,12 @@ import play.api.i18n.I18nSupport
 import services._
 import services.UserError._
 import forms.UserForms._
+import security.SecurityModule
 import models.{User, Role}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class UserController @Inject()(val controllerComponents: ControllerComponents, userService: IUserService)(implicit ec: ExecutionContext) extends BaseController with I18nSupport {
+class UserController @Inject()(val controllerComponents: ControllerComponents, userService: IUserService, securityModule: SecurityModule)(implicit ec: ExecutionContext) extends BaseController with I18nSupport {
 
   def signUpValidate() = Action.async { implicit request =>
     signUpForm.bindFromRequest().fold(
@@ -125,78 +126,64 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
 
   // Admin user management methods
   def updateUser() = Action.async { implicit request =>
-    // Check if user is admin
-    request.session.get("email") match {
-      case None =>
-        Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "Please login first"))
-      case Some(adminEmail) =>
-        userService.get(adminEmail).flatMap {
-          case Some(adminUser) if adminUser.role == Role.Admin =>
-            val userId = request.body.asFormUrlEncoded.flatMap(_.get("id")).flatMap(_.headOption).map(_.toLong)
-            val email = request.body.asFormUrlEncoded.flatMap(_.get("email")).flatMap(_.headOption)
-            val roleStr = request.body.asFormUrlEncoded.flatMap(_.get("role")).flatMap(_.headOption)
-            val password = request.body.asFormUrlEncoded.flatMap(_.get("password")).flatMap(_.headOption).filter(_.nonEmpty)
+    securityModule.requireAdmin(request).flatMap {
+      case Right(adminUser) =>
+        val userId = request.body.asFormUrlEncoded.flatMap(_.get("id")).flatMap(_.headOption).map(_.toLong)
+        val email = request.body.asFormUrlEncoded.flatMap(_.get("email")).flatMap(_.headOption)
+        val roleStr = request.body.asFormUrlEncoded.flatMap(_.get("role")).flatMap(_.headOption)
+        val password = request.body.asFormUrlEncoded.flatMap(_.get("password")).flatMap(_.headOption).filter(_.nonEmpty)
 
-            (userId, email, roleStr) match {
-              case (Some(id), Some(newEmail), Some(role)) =>
-                val newRole = Role.fromString(role).getOrElse(Role.Basic)
-                userService.getByEmail(newEmail).flatMap {
-                  case Some(existingUser) if existingUser.id != id =>
-                    // Email already exists for another user
-                    Future.successful(Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "Email already exists"))
-                  case _ =>
-                    // Get the user to update
-                    userService.list().map(_.find(_.id == id)).flatMap {
-                      case Some(user) =>
-                        val updatedUser = user.copy(
-                          email = newEmail,
-                          role = newRole,
-                          password = password.getOrElse(user.password)
-                        )
-                        userService.updateUser(updatedUser).map { result =>
-                          if (result) {
-                            Redirect(routes.HomeController.adminDashboard()).flashing("success" -> "User updated successfully!")
-                          } else {
-                            Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "Failed to update user")
-                          }
-                        }
-                      case None =>
-                        Future.successful(Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "User not found"))
-                    }
-                }
+        (userId, email, roleStr) match {
+          case (Some(id), Some(newEmail), Some(role)) =>
+            val newRole = Role.fromString(role).getOrElse(Role.Basic)
+            userService.getByEmail(newEmail).flatMap {
+              case Some(existingUser) if existingUser.id != id =>
+                // Email already exists for another user
+                Future.successful(Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "Email already exists"))
               case _ =>
-                Future.successful(Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "Invalid form data"))
+                // Get the user to update
+                userService.list().map(_.find(_.id == id)).flatMap {
+                  case Some(user) =>
+                    val updatedUser = user.copy(
+                      email = newEmail,
+                      role = newRole,
+                      password = password.getOrElse(user.password)
+                    )
+                    userService.updateUser(updatedUser).map { result =>
+                      if (result) {
+                        Redirect(routes.HomeController.adminDashboard()).flashing("success" -> "User updated successfully!")
+                      } else {
+                        Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "Failed to update user")
+                      }
+                    }
+                  case None =>
+                    Future.successful(Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "User not found"))
+                }
             }
           case _ =>
-            Future.successful(Redirect(routes.TaskController.taskList()).flashing("error" -> "Access denied. Admin privileges required."))
+            Future.successful(Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "Invalid form data"))
         }
+      case Left(result) => Future.successful(result)
     }
   }
 
   def deleteUser() = Action.async { implicit request =>
-    // Check if user is admin
-    request.session.get("email") match {
-      case None =>
-        Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "Please login first"))
-      case Some(adminEmail) =>
-        userService.get(adminEmail).flatMap {
-          case Some(adminUser) if adminUser.role == Role.Admin =>
-            val userId = request.body.asFormUrlEncoded.flatMap(_.get("id")).flatMap(_.headOption).map(_.toLong)
-            userId match {
-              case Some(id) =>
-                userService.deleteUser(id).map { result =>
-                  if (result) {
-                    Redirect(routes.HomeController.adminDashboard()).flashing("success" -> "User deleted successfully!")
-                  } else {
-                    Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "Failed to delete user")
-                  }
-                }
-              case None =>
-                Future.successful(Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "Invalid user ID"))
+    securityModule.requireAdmin(request).flatMap {
+      case Right(adminUser) =>
+        val userId = request.body.asFormUrlEncoded.flatMap(_.get("id")).flatMap(_.headOption).map(_.toLong)
+        userId match {
+          case Some(id) =>
+            userService.deleteUser(id).map { result =>
+              if (result) {
+                Redirect(routes.HomeController.adminDashboard()).flashing("success" -> "User deleted successfully!")
+              } else {
+                Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "Failed to delete user")
+              }
             }
-          case _ =>
-            Future.successful(Redirect(routes.TaskController.taskList()).flashing("error" -> "Access denied. Admin privileges required."))
+          case None =>
+            Future.successful(Redirect(routes.HomeController.adminDashboard()).flashing("error" -> "Invalid user ID"))
         }
+      case Left(result) => Future.successful(result)
     }
   }
 
