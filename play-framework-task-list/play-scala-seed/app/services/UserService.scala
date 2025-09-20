@@ -38,6 +38,7 @@ object UserError {
 trait IUserService {
   def signUp(email: String, password: String): Future[Either[UserError, User]]
   def login(email: String, password: String): Future[Either[UserError, User]]
+  def authenticate(email: String, password: String): Future[Option[User]]
   def get(email: String): Future[Option[User]]
   def list(): Future[Seq[User]]
   def updateEmail(currentEmail: String, newEmail: String): Future[Either[UserError, User]]
@@ -84,6 +85,17 @@ class UserService @Inject()(repo: IUserRepository, emailHelper: IEmailHelperServ
         repo.getByEmail(normalizedEmail).map {
           case Some(user) if user.password == password => Right(user)
           case _ => Left(InvalidCredentials)
+        }
+    }
+  }
+
+  override def authenticate(email: String, password: String): Future[Option[User]] = {
+    EmailValidator.validateAndNormalize(email) match {
+      case None => Future.successful(None)
+      case Some(normalizedEmail) =>
+        repo.getByEmail(normalizedEmail).map {
+          case Some(user) if user.password == password => Some(user)
+          case _ => None
         }
     }
   }

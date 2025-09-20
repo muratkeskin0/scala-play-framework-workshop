@@ -38,7 +38,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
     loginForm.bindFromRequest().fold(
       formWithErrors => {
         Future.successful(
-          Redirect(routes.HomeController.login())
+          Redirect(routes.AuthController.login())
             .flashing("error" -> "Please check your input and try again.")
         )
       },
@@ -49,7 +49,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
               .withSession("email" -> loginData.email)
               .flashing("success" -> "Login successful!")
           case Left(error) =>
-            Redirect(routes.HomeController.login())
+            Redirect(routes.AuthController.login())
               .flashing("error" -> error.message)
         }
       }
@@ -59,11 +59,11 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
   def profile() = Action.async { implicit request =>
     request.session.get("email") match {
       case None =>
-        Future.successful(Redirect(routes.HomeController.login()).flashing("error" -> "Please login first"))
+        Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "Please login first"))
       case Some(email) =>
         userService.get(email).map {
           case Some(user) => Ok(views.html.profile(user))
-          case None => Redirect(routes.HomeController.login()).flashing("error" -> "User not found")
+          case None => Redirect(routes.AuthController.login()).flashing("error" -> "User not found")
         }
     }
   }
@@ -71,7 +71,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
   def updateProfile() = Action.async { implicit request =>
     request.session.get("email") match {
       case None =>
-        Future.successful(Redirect(routes.HomeController.login()).flashing("error" -> "Please login first"))
+        Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "Please login first"))
       case Some(currentEmail) =>
         updateProfileForm.bindFromRequest().fold(
           formWithErrors => {
@@ -99,7 +99,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
   def changePassword() = Action.async { implicit request =>
     request.session.get("email") match {
       case None =>
-        Future.successful(Redirect(routes.HomeController.login()).flashing("error" -> "Please login first"))
+        Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "Please login first"))
       case Some(email) =>
         changePasswordForm.bindFromRequest().fold(
           formWithErrors => {

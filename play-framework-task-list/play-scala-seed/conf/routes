@@ -7,8 +7,11 @@
 GET     /                           controllers.HomeController.index()
 GET     /todo                       controllers.HomeController.todo()
 GET     /signUp                     controllers.HomeController.signUp()
-GET     /login                      controllers.HomeController.login()
-GET     /logout                     controllers.HomeController.logout()
+
+# Auth controller (with JWT integration)
+GET     /login                      controllers.AuthController.login()
+POST    /login                      controllers.AuthController.authenticate()
+GET     /logout                     controllers.AuthController.logout()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
@@ -23,5 +26,9 @@ POST    /changePassword           controllers.UserController.changePassword()
 POST    /addTask                  controllers.TaskController.addTask()
 POST    /updateTask               controllers.TaskController.updateTask()
 POST    /deleteTask                  controllers.TaskController.deleteTask()
+
+# Pac4j JWT API endpoints
+GET     /api/validate-token       controllers.AuthController.validateToken()
+GET     /api/user-info            controllers.AuthController.getUserInfo()
 
 

@@ -30,7 +30,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
   }
 
   def logout() = Action {
-    Redirect(routes.HomeController.login()).withNewSession
+    Redirect(routes.AuthController.login()).withNewSession
   }
 
 }
