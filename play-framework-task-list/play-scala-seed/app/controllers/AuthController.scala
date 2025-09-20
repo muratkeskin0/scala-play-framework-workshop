@@ -6,6 +6,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.Results
 import play.api.Configuration
+import play.api.libs.json.Json
 import services.IUserService
 import security.SecurityModule
 import org.pac4j.core.profile.CommonProfile
@@ -84,25 +85,78 @@ class AuthController @Inject()(
   // Pac4j JWT token validation endpoint
   def validateToken() = Action.async { implicit request =>
     request.headers.get("Authorization") match {
-      case Some(authHeader) if authHeader.startsWith("Bearer ") =>
-        val token = authHeader.substring(7)
-        // For now, just return the token info (simplified validation)
-        Future.successful(Ok(s"Pac4j JWT Token: ${token.take(50)}..."))
-      case _ =>
-        Future.successful(Unauthorized("No token provided"))
+      case Some(authHeader) =>
+        securityModule.extractTokenFromHeader(authHeader) match {
+          case Some(token) =>
+            securityModule.validateJwtToken(token).map {
+              case Some(profile) =>
+                Ok(Json.obj(
+                  "valid" -> true,
+                  "user" -> Json.obj(
+                    "email" -> profile.getId,
+                    "userId" -> profile.getAttribute("userId", classOf[String]),
+                    "username" -> profile.getAttribute("username", classOf[String])
+                  ),
+                  "message" -> "Token is valid"
+                ))
+              case None =>
+                Unauthorized(Json.obj(
+                  "valid" -> false,
+                  "message" -> "Invalid or expired token"
+                ))
+            }
+          case None =>
+            Future.successful(BadRequest(Json.obj(
+              "valid" -> false,
+              "message" -> "Invalid Authorization header format. Use 'Bearer <token>'"
+            )))
+        }
+      case None =>
+        Future.successful(Unauthorized(Json.obj(
+          "valid" -> false,
+          "message" -> "No Authorization header provided"
+        )))
     }
   }
 
   // Get user info from Pac4j JWT token
   def getUserInfo() = Action.async { implicit request =>
     request.headers.get("Authorization") match {
-      case Some(authHeader) if authHeader.startsWith("Bearer ") =>
-        val token = authHeader.substring(7)
-        // For now, return session info (simplified)
-        val email = request.session.get("email").getOrElse("Unknown")
-        Future.successful(Ok(s"Pac4j User: $email"))
-      case _ =>
-        Future.successful(Unauthorized("No token provided"))
+      case Some(authHeader) =>
+        securityModule.extractTokenFromHeader(authHeader) match {
+          case Some(token) =>
+            securityModule.validateAndGetUser(token).map {
+              case Some(userInfo) =>
+                val email = userInfo.getOrElse("email", "")
+                val userId = userInfo.getOrElse("userId", "")
+                val username = userInfo.getOrElse("username", "")
+                
+                Ok(Json.obj(
+                  "success" -> true,
+                  "user" -> Json.obj(
+                    "email" -> email,
+                    "userId" -> userId,
+                    "username" -> username
+                  ),
+                  "message" -> "User info retrieved successfully"
+                ))
+              case None =>
+                Unauthorized(Json.obj(
+                  "success" -> false,
+                  "message" -> "Invalid or expired token"
+                ))
+            }
+          case None =>
+            Future.successful(BadRequest(Json.obj(
+              "success" -> false,
+              "message" -> "Invalid Authorization header format"
+            )))
+        }
+      case None =>
+        Future.successful(Unauthorized(Json.obj(
+          "success" -> false,
+          "message" -> "No Authorization header provided"
+        )))
     }
   }
 }
