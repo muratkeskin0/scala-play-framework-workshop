@@ -13,7 +13,7 @@ import org.pac4j.jwt.profile.JwtGenerator
 import org.pac4j.jwt.profile.JwtProfile
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import play.api.Configuration
-import play.api.mvc.{Request, Result, Results}
+import play.api.mvc.{Request, RequestHeader, Result, Results}
 import services.IUserService
 import models.{User, Role}
 import controllers.routes
@@ -199,35 +199,12 @@ class SecurityModule @Inject()(userService: IUserService, configuration: Configu
     }
   }
   
-  // Session-based role helpers
-  def isAdminFromSession(request: Request[_]): Future[Boolean] = {
-    request.session.get("email") match {
-      case Some(email) =>
-        userService.get(email).map {
-          case Some(user) => user.role == Role.Admin
-          case None => false
-        }
-      case None => Future.successful(false)
-    }
-  }
-  
-  def getCurrentUserFromSession(request: Request[_]): Future[Option[User]] = {
+  // Helper method for SecurityFilter (simplified)
+  def getCurrentUserFromSession(request: RequestHeader): Future[Option[User]] = {
     request.session.get("email") match {
       case Some(email) => userService.get(email)
       case None => Future.successful(None)
     }
-  }
-  
-  def requireRole(requiredRole: Role)(request: Request[_]): Future[Either[Result, User]] = {
-    getCurrentUserFromSession(request).map {
-      case Some(user) if user.role == requiredRole => Right(user)
-      case Some(_) => Left(Results.Redirect(routes.TaskController.taskList()).flashing("error" -> "Access denied. Insufficient privileges."))
-      case None => Left(Results.Redirect(routes.AuthController.login()).flashing("error" -> "Please login to access this page"))
-    }
-  }
-  
-  def requireAdmin(request: Request[_]): Future[Either[Result, User]] = {
-    requireRole(Role.Admin)(request)
   }
 
   // Get JWT configuration info

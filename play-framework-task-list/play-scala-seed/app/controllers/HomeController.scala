@@ -4,7 +4,6 @@ import javax.inject._
 import play.api._
 import play.api.mvc._
 import services.UserService
-import security.SecurityModule
 import models.{User, Role}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -13,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
  * application's home page.
  */
 @Singleton
-class HomeController @Inject()(val controllerComponents: ControllerComponents, userService: UserService, securityModule: SecurityModule)(implicit ec: ExecutionContext) extends BaseController {
+class HomeController @Inject()(val controllerComponents: ControllerComponents, userService: UserService)(implicit ec: ExecutionContext) extends BaseController {
 
   def index() = Action { implicit request: Request[AnyContent] =>
     // Eğer kullanıcı giriş yapmışsa task listesine yönlendir
@@ -38,13 +37,9 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents, u
   }
 
   def adminDashboard() = Action.async { implicit request: Request[AnyContent] =>
-    securityModule.requireAdmin(request).flatMap {
-      case Right(adminUser) =>
-        // Get all users for admin dashboard
-        userService.list().map { users =>
-          Ok(views.html.admin.dashboard(users))
-        }
-      case Left(result) => Future.successful(result)
+    // SecurityFilter ensures admin access, so we can directly get users
+    userService.list().map { users =>
+      Ok(views.html.admin.dashboard(users))
     }
   }
 

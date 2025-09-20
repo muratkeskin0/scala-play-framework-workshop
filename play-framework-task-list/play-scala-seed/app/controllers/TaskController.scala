@@ -6,45 +6,35 @@ import play.api.data.Form
 import play.api.i18n.I18nSupport
 import services.{ITaskService, IUserService}
 import forms.TaskForms._
-import security.SecurityModule
 import models.{User, Role}
 import org.pac4j.core.profile.CommonProfile
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TaskController @Inject()(val controllerComponents: ControllerComponents, taskService: ITaskService, userService: IUserService, securityModule: SecurityModule)(implicit ec: ExecutionContext) extends BaseController with I18nSupport {
+class TaskController @Inject()(val controllerComponents: ControllerComponents, taskService: ITaskService, userService: IUserService)(implicit ec: ExecutionContext) extends BaseController with I18nSupport {
 
-  // Helper method to get user email from session
-  private def getCurrentUserEmail(request: Request[_]): Option[String] = {
-    request.session.get("email")
-  }
-  
-  // Helper method to check if user is authenticated
-  private def requireAuth(request: Request[_]): Future[Either[Result, User]] = {
-    getCurrentUserEmail(request) match {
-      case Some(email) =>
-        userService.get(email).map {
-          case Some(user) => Right(user)
-          case None => Left(Redirect(routes.AuthController.login()).flashing("error" -> "User not found"))
-        }
-      case None =>
-        Future.successful(Left(Redirect(routes.AuthController.login()).flashing("error" -> "Please login to access this page")))
+  // Helper method to get current user (filter ensures authentication)
+  private def getCurrentUser(request: Request[_]): Future[Option[User]] = {
+    request.session.get("email") match {
+      case Some(email) => userService.get(email)
+      case None => Future.successful(None)
     }
   }
 
   def taskList() = Action.async { implicit request =>
-    requireAuth(request).flatMap {
-      case Right(user) =>
+    getCurrentUser(request).flatMap {
+      case Some(user) =>
         taskService.list(user.email).map { tasks =>
           Ok(views.html.taskList(tasks, Some(user)))
         }
-      case Left(result) => Future.successful(result)
+      case None =>
+        Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "User not found"))
     }
   }
 
   def addTask() = Action.async { implicit request =>
-    requireAuth(request).flatMap {
-      case Right(user) =>
+    getCurrentUser(request).flatMap {
+      case Some(user) =>
         addTaskForm.bindFromRequest().fold(
           formWithErrors => {
             Future.successful(
@@ -61,13 +51,14 @@ class TaskController @Inject()(val controllerComponents: ControllerComponents, t
             }
           }
         )
-      case Left(result) => Future.successful(result)
+      case None =>
+        Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "User not found"))
     }
   }
 
   def updateTask() = Action.async { implicit request =>
-    requireAuth(request).flatMap {
-      case Right(user) =>
+    getCurrentUser(request).flatMap {
+      case Some(user) =>
         updateTaskForm.bindFromRequest().fold(
           formWithErrors => {
             Future.successful(
@@ -84,13 +75,14 @@ class TaskController @Inject()(val controllerComponents: ControllerComponents, t
             }
           }
         )
-      case Left(result) => Future.successful(result)
+      case None =>
+        Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "User not found"))
     }
   }
 
   def deleteTask() = Action.async { implicit request =>
-    requireAuth(request).flatMap {
-      case Right(user) =>
+    getCurrentUser(request).flatMap {
+      case Some(user) =>
         deleteTaskForm.bindFromRequest().fold(
           formWithErrors => {
             Future.successful(
@@ -107,7 +99,8 @@ class TaskController @Inject()(val controllerComponents: ControllerComponents, t
             }
           }
         )
-      case Left(result) => Future.successful(result)
+      case None =>
+        Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "User not found"))
     }
   }
 }

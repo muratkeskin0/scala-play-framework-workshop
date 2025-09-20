@@ -5,6 +5,7 @@ import persistence._
 import actors._
 import schedulers._
 import security._
+import filters._
 
 class Module extends AbstractModule {
   override def configure(): Unit = {
@@ -26,7 +27,8 @@ class Module extends AbstractModule {
     bind(classOf[EmailActorManager]).asEagerSingleton()
     bind(classOf[TaskReminderScheduler]).asEagerSingleton()
     
-          // Security bindings
-          bind(classOf[SecurityModule]).asEagerSingleton()
+    // Security bindings
+    bind(classOf[SecurityModule]).asEagerSingleton()
+    bind(classOf[SecurityFilter]).asEagerSingleton()
   }
 }
