@@ -40,9 +40,12 @@ trait IUserService {
   def login(email: String, password: String): Future[Either[UserError, User]]
   def authenticate(email: String, password: String): Future[Option[User]]
   def get(email: String): Future[Option[User]]
+  def getByEmail(email: String): Future[Option[User]]
   def list(): Future[Seq[User]]
   def updateEmail(currentEmail: String, newEmail: String): Future[Either[UserError, User]]
   def changePassword(email: String, currentPassword: String, newPassword: String): Future[Either[UserError, User]]
+  def updateUser(user: User): Future[Boolean]
+  def deleteUser(id: Long): Future[Boolean]
 }
 
 @Singleton
@@ -107,6 +110,13 @@ class UserService @Inject()(repo: IUserRepository, emailHelper: IEmailHelperServ
     }
   }
 
+  override def getByEmail(email: String): Future[Option[User]] = {
+    EmailValidator.validateAndNormalize(email) match {
+      case None => Future.successful(None)
+      case Some(normalizedEmail) => repo.getByEmail(normalizedEmail)
+    }
+  }
+
   override def list(): Future[Seq[User]] =
     repo.list()
 
@@ -147,6 +157,21 @@ class UserService @Inject()(repo: IUserRepository, emailHelper: IEmailHelperServ
           }
         case Some(_) => Future.successful(Left(WrongCurrentPassword))
         case None => Future.successful(Left(NotFound(email)))
+      }
+    }
+  }
+
+  override def updateUser(user: User): Future[Boolean] = {
+    repo.update(user).map(_ > 0)
+  }
+
+  override def deleteUser(id: Long): Future[Boolean] = {
+    repo.list().flatMap { users =>
+      users.find(_.id == id) match {
+        case Some(user) =>
+          repo.delete(user.email).map(_ > 0)
+        case None =>
+          Future.successful(false)
       }
     }
   }

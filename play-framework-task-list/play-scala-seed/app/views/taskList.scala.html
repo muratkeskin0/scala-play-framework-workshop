@@ -1,10 +1,13 @@
-@(tasks : Seq[models.Task])(implicit flash : Flash, request : RequestHeader)
+@(tasks : Seq[models.Task], currentUser: Option[models.User] = None)(implicit flash : Flash, request : RequestHeader)
 
 @main("Task List") {
   <div class="container">
     <div class="nav">
       <h1>Task Manager</h1>
       <div class="nav-links">
+        @if(currentUser.exists(_.role == models.Role.Admin)) {
+          <a href="@routes.HomeController.adminDashboard()">Admin Dashboard</a>
+        }
         <a href="@routes.UserController.profile()">Profile</a>
         <a href="@routes.AuthController.logout()">Logout</a>
       </div>

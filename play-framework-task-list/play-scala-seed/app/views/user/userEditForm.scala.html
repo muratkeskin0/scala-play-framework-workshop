@@ -1,0 +1,27 @@
+@(user: models.User)(implicit request: play.api.mvc.RequestHeader)
+
+@helper.form(action = routes.UserController.updateUser()) {
+  @helper.CSRF.formField
+  <input type="hidden" name="id" value="@user.id">
+  <div class="edit-form">
+    <div class="form-group">
+      <label for="email-@user.id">Email:</label>
+      <input type="email" name="email" id="email-@user.id" value="@user.email" required class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="role-@user.id">Role:</label>
+      <select name="role" id="role-@user.id" class="form-control">
+        <option value="basic" @if(user.role == models.Role.Basic) { selected }>Basic</option>
+        <option value="admin" @if(user.role == models.Role.Admin) { selected }>Admin</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="password-@user.id">New Password (leave blank to keep current):</label>
+      <input type="password" name="password" id="password-@user.id" class="form-control" placeholder="Enter new password">
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">Save Changes</button>
+      <button type="button" onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+    </div>
+  </div>
+}

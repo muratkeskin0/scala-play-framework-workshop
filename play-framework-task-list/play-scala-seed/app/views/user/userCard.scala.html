@@ -1,0 +1,12 @@
+@(user: models.User)
+
+<div class="user-card" onclick="showUserDetails(@user.id)">
+  <div class="user-email">@user.email</div>
+  <div class="user-role">
+    <span class="role-badge @user.role.value">@user.role.value.toUpperCase</span>
+  </div>
+  <div class="user-actions">
+    <button onclick="event.stopPropagation(); toggleEdit(@user.id);" class="btn btn-sm btn-outline-primary">Edit</button>
+    <button onclick="event.stopPropagation(); deleteUser(@user.id);" class="btn btn-sm btn-danger">Delete</button>
+  </div>
+</div>

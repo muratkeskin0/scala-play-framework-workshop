@@ -5,6 +5,9 @@
     <div class="nav">
       <h1>User Profile</h1>
       <div class="nav-links">
+        @if(user.role == models.Role.Admin) {
+          <a href="@routes.HomeController.adminDashboard()">Admin Dashboard</a>
+        }
         <a href="@routes.TaskController.taskList()">Task List</a>
         <a href="@routes.AuthController.logout()">Logout</a>
       </div>

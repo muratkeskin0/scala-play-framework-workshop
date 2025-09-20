@@ -4,14 +4,15 @@ import javax.inject._
 import play.api.mvc._
 import play.api.data.Form
 import play.api.i18n.I18nSupport
-import services.ITaskService
+import services.{ITaskService, IUserService}
 import forms.TaskForms._
 import security.SecurityModule
+import models.{User, Role}
 import org.pac4j.core.profile.CommonProfile
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TaskController @Inject()(val controllerComponents: ControllerComponents, taskService: ITaskService, securityModule: SecurityModule)(implicit ec: ExecutionContext) extends BaseController with I18nSupport {
+class TaskController @Inject()(val controllerComponents: ControllerComponents, taskService: ITaskService, userService: IUserService, securityModule: SecurityModule)(implicit ec: ExecutionContext) extends BaseController with I18nSupport {
 
   // Helper method to get user email from session
   private def getCurrentUserEmail(request: Request[_]): Option[String] = {
@@ -31,10 +32,14 @@ class TaskController @Inject()(val controllerComponents: ControllerComponents, t
     if (securityModule.isAuthenticated(request)) {
       getCurrentUserEmail(request) match {
         case Some(email) =>
-          taskService.list(email).map { tasks =>
-            Ok(views.html.taskList(tasks))
-          }.recover { case _ =>
-            InternalServerError("Failed to load tasks")
+          for {
+            tasks <- taskService.list(email)
+            user <- userService.get(email)
+          } yield {
+            user match {
+              case Some(currentUser) => Ok(views.html.taskList(tasks, Some(currentUser)))
+              case None => Ok(views.html.taskList(tasks, None))
+            }
           }
         case None =>
           Future.successful(Unauthorized("Unauthorized"))

@@ -27,6 +27,11 @@ POST    /addTask                  controllers.TaskController.addTask()
 POST    /updateTask               controllers.TaskController.updateTask()
 POST    /deleteTask                  controllers.TaskController.deleteTask()
 
+# Admin dashboard
+GET     /admin/dashboard           controllers.HomeController.adminDashboard()
+POST    /admin/users/update        controllers.UserController.updateUser()
+POST    /admin/users/delete        controllers.UserController.deleteUser()
+
 # Pac4j JWT API endpoints
 GET     /api/validate-token       controllers.AuthController.validateToken()
 GET     /api/user-info            controllers.AuthController.getUserInfo()

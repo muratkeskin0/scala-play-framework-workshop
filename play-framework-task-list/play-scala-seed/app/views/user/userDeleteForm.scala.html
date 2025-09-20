@@ -1,0 +1,6 @@
+@(user: models.User)(implicit request: play.api.mvc.RequestHeader)
+
+@helper.form(action = routes.UserController.deleteUser()) {
+  @helper.CSRF.formField
+  <input type="hidden" name="id" value="@user.id">
+}

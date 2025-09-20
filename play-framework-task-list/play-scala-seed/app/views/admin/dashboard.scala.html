@@ -1,0 +1,83 @@
+@(users: Seq[models.User])(implicit flash: Flash, request: RequestHeader)
+
+@main("Admin Dashboard") {
+  <div class="container">
+    <div class="nav">
+      <h1>Admin Dashboard</h1>
+      <div class="nav-links">
+        <a href="@routes.TaskController.taskList()">Task List</a>
+        <a href="@routes.UserController.profile()">Profile</a>
+        <a href="@routes.AuthController.logout()">Logout</a>
+      </div>
+    </div>
+
+    @if(flash.get("success").isDefined) {
+      <div class="alert alert-success">
+        @flash.get("success")
+      </div>
+    }
+
+    @if(flash.get("error").isDefined) {
+      <div class="alert alert-danger">
+        @flash.get("error")
+      </div>
+    }
+
+    <div class="admin-content">
+      <h2>User Management</h2>
+      <p>Manage all users in the system. You can edit user details and delete users.</p>
+
+      @if(users.isEmpty) {
+        <div class="empty-state">
+          <h3>No users found!</h3>
+          <p>There are no users in the system yet.</p>
+        </div>
+      } else {
+        <div class="users-grid">
+          @for(user <- users) {
+            @views.html.user.userCard(user)
+          }
+        </div>
+
+        <!-- User Detail Modal -->
+        <div id="userDetailModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>User Details</h3>
+              <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+              <div id="userDetails"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Form Modal -->
+        <div id="editModal" class="modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Edit User</h3>
+              <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+              <div id="editForm"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden forms for actions -->
+        @for(user <- users) {
+          <div id="edit-form-@user.id" style="display: none;">
+            @views.html.user.userEditForm(user)(request)
+          </div>
+
+          <div id="delete-form-@user.id" style="display: none;">
+            @views.html.user.userDeleteForm(user)(request)
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+
+}
