@@ -8,15 +8,22 @@ import play.api.mvc.Results
 import play.api.Configuration
 import play.api.libs.json.Json
 import services.IUserService
-import security.SecurityModule
+import security.{SecurityModule, SessionFactory}
 import org.pac4j.core.profile.CommonProfile
+import org.pac4j.core.config.Config
+import org.pac4j.play.PlayWebContext
+import org.pac4j.play.store.PlaySessionStore
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthController @Inject()(
   userService: IUserService,
   securityModule: SecurityModule,
-  val controllerComponents: ControllerComponents
+  sessionFactory: SessionFactory,
+  val controllerComponents: ControllerComponents,
+  config: Config,
+  sessionStore: PlaySessionStore
 )(implicit ec: ExecutionContext) extends BaseController {
+
 
   // Login form
   val loginForm = Form(
@@ -41,34 +48,58 @@ class AuthController @Inject()(
         )
       },
       loginData => {
-        println(s"Pac4j AuthController: Starting authentication for ${loginData.email}")
+        println(s"🔄 AuthController: Processing authentication for ${loginData.email}")
         
         userService.authenticate(loginData.email, loginData.password).map {
           case Some(user) =>
-            println(s"Pac4j AuthController: User found in database: ${user.email}")
+            println(s"✅ AuthController: User authenticated successfully: ${user.email}")
             
-            // Create Pac4j profile
-            val profile = securityModule.createProfile(user.email, user.id.toString, user.email.split("@").head)
+            // Create Pac4j profile using SessionFactory
+            val webContext = sessionFactory.createWebContext(request)
+            println(s"🏭 AuthController: Created WebContext using SessionFactory for user: ${user.email}")
             
-            // Generate JWT token using Pac4j
-            val token = securityModule.generateJwtToken(profile)
+            val profile = new CommonProfile()
+            profile.setId(user.email)
+            profile.addAttribute("email", user.email)
+            profile.addAttribute("userId", user.id.toString)
+            profile.addAttribute("username", user.email.split("@").head)
+            profile.addAttribute("role", user.role.value)
+            println(s"🏭 AuthController: Created CommonProfile with ID: ${profile.getId}, role: ${profile.getAttribute("role")}")
             
-            println(s"Pac4j AuthController: JWT token generated and stored in session")
+            // Save profile using SessionFactory
+            val saveSuccess = sessionFactory.saveProfile(webContext, profile)
+            if (saveSuccess) {
+              println(s"✅ AuthController: Profile saved successfully using SessionFactory for user: ${user.email}")
+            } else {
+              println(s"❌ AuthController: Failed to save profile using SessionFactory for user: ${user.email}")
+            }
             
-            // Store in session and redirect to task list
+            // Also save profile data directly to Play session as backup
+            val profileData = Map(
+              "profileId" -> profile.getId,
+              "profileEmail" -> profile.getAttribute("email").toString,
+              "profileRole" -> profile.getAttribute("role").toString,
+              "profileUserId" -> profile.getAttribute("userId").toString
+            )
+            println(s"🔧 AuthController: Storing profile data in Play session: $profileData")
+            
+            // Store all data in session including profile data
+            val session = request.session ++ Map(
+              "email" -> user.email,
+              "userId" -> user.id.toString,
+              "username" -> user.email.split("@").head,
+              "role" -> user.role.value
+            ) ++ profileData
+            
             Redirect(routes.TaskController.taskList())
-              .withSession(
-                "email" -> user.email,
-                "userId" -> user.id.toString,
-                "jwtToken" -> token
-              )
-              .flashing("success" -> "Login successful with Pac4j!")
+              .withSession(session)
+              .flashing("success" -> "Login successful!")
           case None =>
-            println(s"Pac4j AuthController: User not found in database: ${loginData.email}")
+            println(s"❌ AuthController: Authentication failed for: ${loginData.email}")
             Redirect(routes.AuthController.login())
               .flashing("error" -> "Invalid email or password.")
         }.recover { case e =>
-          println(s"Pac4j AuthController: Authentication error: ${e.getMessage}")
+          println(s"❌ AuthController: Authentication error: ${e.getMessage}")
           Redirect(routes.AuthController.login())
             .flashing("error" -> "Authentication error.")
         }
@@ -76,87 +107,28 @@ class AuthController @Inject()(
     )
   }
 
-  def logout() = Action { implicit request =>
-    Redirect(routes.AuthController.login())
-      .withNewSession
-      .flashing("success" -> "You have been logged out.")
-  }
-
-  // Pac4j JWT token validation endpoint
-  def validateToken() = Action.async { implicit request =>
-    request.headers.get("Authorization") match {
-      case Some(authHeader) =>
-        securityModule.extractTokenFromHeader(authHeader) match {
-          case Some(token) =>
-            securityModule.validateJwtToken(token).map {
-              case Some(profile) =>
-                Ok(Json.obj(
-                  "valid" -> true,
-                  "user" -> Json.obj(
-                    "email" -> profile.getId,
-                    "userId" -> profile.getAttribute("userId", classOf[String]),
-                    "username" -> profile.getAttribute("username", classOf[String])
-                  ),
-                  "message" -> "Token is valid"
-                ))
-              case None =>
-                Unauthorized(Json.obj(
-                  "valid" -> false,
-                  "message" -> "Invalid or expired token"
-                ))
-            }
-          case None =>
-            Future.successful(BadRequest(Json.obj(
-              "valid" -> false,
-              "message" -> "Invalid Authorization header format. Use 'Bearer <token>'"
-            )))
-        }
-      case None =>
-        Future.successful(Unauthorized(Json.obj(
-          "valid" -> false,
-          "message" -> "No Authorization header provided"
-        )))
-    }
-  }
-
-  // Get user info from Pac4j JWT token
-  def getUserInfo() = Action.async { implicit request =>
-    request.headers.get("Authorization") match {
-      case Some(authHeader) =>
-        securityModule.extractTokenFromHeader(authHeader) match {
-          case Some(token) =>
-            securityModule.validateAndGetUser(token).map {
-              case Some(userInfo) =>
-                val email = userInfo.getOrElse("email", "")
-                val userId = userInfo.getOrElse("userId", "")
-                val username = userInfo.getOrElse("username", "")
-                
-                Ok(Json.obj(
-                  "success" -> true,
-                  "user" -> Json.obj(
-                    "email" -> email,
-                    "userId" -> userId,
-                    "username" -> username
-                  ),
-                  "message" -> "User info retrieved successfully"
-                ))
-              case None =>
-                Unauthorized(Json.obj(
-                  "success" -> false,
-                  "message" -> "Invalid or expired token"
-                ))
-            }
-          case None =>
-            Future.successful(BadRequest(Json.obj(
-              "success" -> false,
-              "message" -> "Invalid Authorization header format"
-            )))
-        }
-      case None =>
-        Future.successful(Unauthorized(Json.obj(
-          "success" -> false,
-          "message" -> "No Authorization header provided"
-        )))
+  def logout() = Action.async { implicit request =>
+    Future {
+      try {
+        println(s"🔄 AuthController: Processing Pac4j logout")
+        
+        val webContext = new PlayWebContext(request, sessionStore)
+        
+        // Clear Pac4j session
+        val profileManager = new org.pac4j.core.profile.ProfileManager(webContext, sessionStore)
+        profileManager.remove(true)
+        
+        println(s"✅ AuthController: Logout processed successfully")
+        Redirect(routes.AuthController.login())
+          .withNewSession
+          .flashing("success" -> "You have been logged out.")
+      } catch {
+        case e: Exception =>
+          println(s"❌ AuthController: Logout error - ${e.getMessage}")
+          Redirect(routes.AuthController.login())
+            .withNewSession
+            .flashing("success" -> "You have been logged out.")
+      }
     }
   }
 }

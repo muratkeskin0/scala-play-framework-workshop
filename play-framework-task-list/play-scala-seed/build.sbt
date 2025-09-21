@@ -27,57 +27,16 @@ libraryDependencies ++= Seq(
 
 libraryDependencies ++= Seq(
   // Play entegrasyonu (Scala artefact → %%)
-  "org.pac4j" %% "play-pac4j" % "12.0.1-PLAY2.9",
+  "org.pac4j" %% "play-pac4j" % "9.0.0",
 
   // pac4j çekirdek modülleri (Java artefact → %)
-  "org.pac4j" %  "pac4j-core" % "6.1.2",
-  "org.pac4j" %  "pac4j-http" % "6.1.2",
-  "org.pac4j" %  "pac4j-jwt"  % "6.1.2",
+  "org.pac4j" %  "pac4j-core" % "4.5.7",
+  "org.pac4j" %  "pac4j-http" % "4.5.7",
+  "org.pac4j" %  "pac4j-jwt"  % "4.5.7",
 )
 
-// --- pac4j + play-pac4j (Play 2.9, Scala 2.13) ---
-libraryDependencies ++= Seq(
-  // Play entegrasyonu (Scala artefact → %%)
-  "org.pac4j" %% "play-pac4j" % "12.0.1-PLAY2.9"
-    exclude("com.fasterxml.jackson.core",   "jackson-databind")
-    exclude("com.fasterxml.jackson.core",   "jackson-core")
-    exclude("com.fasterxml.jackson.core",   "jackson-annotations")
-    exclude("com.fasterxml.jackson.module", "jackson-module-scala")
-    exclude("com.fasterxml.jackson.datatype","jackson-datatype-jsr310"),
-
-  // pac4j modülleri (Java artefact → %)
-  "org.pac4j" % "pac4j-core" % "6.1.2"
-    exclude("com.fasterxml.jackson.core",   "jackson-databind")
-    exclude("com.fasterxml.jackson.core",   "jackson-core")
-    exclude("com.fasterxml.jackson.core",   "jackson-annotations")
-    exclude("com.fasterxml.jackson.module", "jackson-module-scala")
-    exclude("com.fasterxml.jackson.datatype","jackson-datatype-jsr310"),
-
-  "org.pac4j" % "pac4j-http" % "6.1.2"
-    exclude("com.fasterxml.jackson.core",   "jackson-databind")
-    exclude("com.fasterxml.jackson.core",   "jackson-core")
-    exclude("com.fasterxml.jackson.core",   "jackson-annotations")
-    exclude("com.fasterxml.jackson.module", "jackson-module-scala")
-    exclude("com.fasterxml.jackson.datatype","jackson-datatype-jsr310"),
-
-  "org.pac4j" % "pac4j-jwt"  % "6.1.2"
-    exclude("com.fasterxml.jackson.core",   "jackson-databind")
-    exclude("com.fasterxml.jackson.core",   "jackson-core")
-    exclude("com.fasterxml.jackson.core",   "jackson-annotations")
-    exclude("com.fasterxml.jackson.module", "jackson-module-scala")
-    exclude("com.fasterxml.jackson.datatype","jackson-datatype-jsr310"),
-
-  // Play cache for Pac4j
-  "com.typesafe.play" %% "play-cache" % "2.9.0"
-
-  // SAML2Client kullanıyorsan şunu da ekle (yorumdan çıkar):
-  // ,"org.pac4j" % "pac4j-saml" % "6.1.2"
-  //    .exclude("com.fasterxml.jackson.core",   "jackson-databind")
-  //    .exclude("com.fasterxml.jackson.core",   "jackson-core")
-  //    .exclude("com.fasterxml.jackson.core",   "jackson-annotations")
-  //    .exclude("com.fasterxml.jackson.module", "jackson-module-scala")
-  //    .exclude("com.fasterxml.jackson.datatype","jackson-datatype-jsr310")
-)
+// Play cache for Pac4j (Caffeine implementation)
+libraryDependencies += "com.typesafe.play" %% "play-caffeine-cache" % play.core.PlayVersion.current
 
 // Jackson’ı Akka/Play 2.9 ile uyumlu 2.14.3’e sabitle
 dependencyOverrides ++= Seq(

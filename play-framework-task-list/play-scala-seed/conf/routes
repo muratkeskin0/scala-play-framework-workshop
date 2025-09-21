@@ -8,10 +8,13 @@ GET     /                           controllers.HomeController.index()
 GET     /todo                       controllers.HomeController.todo()
 GET     /signUp                     controllers.HomeController.signUp()
 
-# Auth controller (with JWT integration)
+# Auth controller (with Pac4j FormClient integration)
 GET     /login                      controllers.AuthController.login()
 POST    /login                      controllers.AuthController.authenticate()
 GET     /logout                     controllers.AuthController.logout()
+
+# Pac4j callback controller
+GET     /callback                   controllers.CallbackController.callback()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
@@ -32,8 +35,5 @@ GET     /admin/dashboard           controllers.HomeController.adminDashboard()
 POST    /admin/users/update        controllers.UserController.updateUser()
 POST    /admin/users/delete        controllers.UserController.deleteUser()
 
-# Pac4j JWT API endpoints
-GET     /api/validate-token       controllers.AuthController.validateToken()
-GET     /api/user-info            controllers.AuthController.getUserInfo()
 
 

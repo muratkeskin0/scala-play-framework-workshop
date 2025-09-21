@@ -37,7 +37,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents, u
   }
 
   def adminDashboard() = Action.async { implicit request: Request[AnyContent] =>
-    // SecurityFilter ensures admin access, so we can directly get users
+    // Pac4jSecurityFilter ensures admin access, so we can directly get users
     userService.list().map { users =>
       Ok(views.html.admin.dashboard(users))
     }

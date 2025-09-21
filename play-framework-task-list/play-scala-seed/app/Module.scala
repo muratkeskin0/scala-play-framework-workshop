@@ -5,7 +5,9 @@ import persistence._
 import actors._
 import schedulers._
 import security._
-import filters._
+import filters.Pac4jSecurityFilter
+import org.pac4j.play.store.PlaySessionStore
+import org.pac4j.play.store.PlayCacheSessionStore
 
 class Module extends AbstractModule {
   override def configure(): Unit = {
@@ -29,6 +31,8 @@ class Module extends AbstractModule {
     
     // Security bindings
     bind(classOf[SecurityModule]).asEagerSingleton()
-    bind(classOf[SecurityFilter]).asEagerSingleton()
+    bind(classOf[PlaySessionStore]).to(classOf[PlayCacheSessionStore]).asEagerSingleton()
+    bind(classOf[SessionFactory]).asEagerSingleton()
+    bind(classOf[Pac4jSecurityFilter]).asEagerSingleton()
   }
 }

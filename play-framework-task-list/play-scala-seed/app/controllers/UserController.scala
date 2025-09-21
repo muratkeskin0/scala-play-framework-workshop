@@ -125,7 +125,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
 
   // Admin user management methods
   def updateUser() = Action.async { implicit request =>
-    // SecurityFilter ensures admin access
+    // Pac4jSecurityFilter ensures admin access
     val userId = request.body.asFormUrlEncoded.flatMap(_.get("id")).flatMap(_.headOption).map(_.toLong)
     val email = request.body.asFormUrlEncoded.flatMap(_.get("email")).flatMap(_.headOption)
     val roleStr = request.body.asFormUrlEncoded.flatMap(_.get("role")).flatMap(_.headOption)
@@ -164,7 +164,7 @@ class UserController @Inject()(val controllerComponents: ControllerComponents, u
   }
 
   def deleteUser() = Action.async { implicit request =>
-    // SecurityFilter ensures admin access
+    // Pac4jSecurityFilter ensures admin access
     val userId = request.body.asFormUrlEncoded.flatMap(_.get("id")).flatMap(_.headOption).map(_.toLong)
     userId match {
       case Some(id) =>
