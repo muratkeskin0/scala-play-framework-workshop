@@ -6,7 +6,6 @@
     <p class="text-center mb-20">Sign in to your Task Manager account</p>
 
     <form method="post" action="@routes.AuthController.authenticate()">
-      @helper.CSRF.formField
       <div class="form-group">
         <label for="email">Email Address</label>
         <input type="email" id="email" name="email" required placeholder="your@@email.com">

@@ -21,6 +21,7 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 
 # TaskList controller
 GET     /taskList                  controllers.TaskController.taskList()
+GET     /modern-task-list          controllers.TaskController.modernTaskList()
 GET     /profile                   controllers.UserController.profile()
 POST    /signUpValidate            controllers.UserController.signUpValidate()
 POST    /loginValidate            controllers.UserController.loginValidate()
@@ -29,6 +30,12 @@ POST    /changePassword           controllers.UserController.changePassword()
 POST    /addTask                  controllers.TaskController.addTask()
 POST    /updateTask               controllers.TaskController.updateTask()
 POST    /deleteTask                  controllers.TaskController.deleteTask()
+
+# AJAX API Endpoints
+GET     /api/tasks                controllers.TaskController.getTasksAjax()
+POST    /api/tasks                controllers.TaskController.addTaskAjax()
+PUT     /api/tasks/:id            controllers.TaskController.updateTaskAjax(id: Long)
+DELETE  /api/tasks/:id            controllers.TaskController.deleteTaskAjax(id: Long)
 
 # Admin dashboard
 GET     /admin/dashboard           controllers.HomeController.adminDashboard()

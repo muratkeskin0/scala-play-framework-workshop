@@ -128,7 +128,6 @@ class TaskService @Inject()(taskRepo: ITaskRepository, userRepo: IUserRepository
       }
     }
   }
-
   /** Get bulk task count for multiple users */
   override def countByEmails(emails: Seq[String]): Future[Map[String, Int]] = {
     if (emails.isEmpty) Future.successful(Map.empty)

@@ -1,0 +1,148 @@
+@(tasks : Seq[models.Task], currentUser: Option[models.User] = None)(implicit flash : Flash, request : RequestHeader)
+
+@main("Modern Task Manager") {
+  <div class="modern-container">
+    <!-- Modern Header -->
+    <div class="modern-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="app-title">
+            <span class="app-icon">📋</span>
+            Task Manager Pro
+          </h1>
+          <p class="app-subtitle">Modern task management with real-time updates</p>
+        </div>
+        <div class="header-right">
+          <div class="user-info">
+            @if(currentUser.isDefined) {
+              <span class="user-name">Welcome, @currentUser.get.email</span>
+              @if(currentUser.exists(_.role == models.Role.Admin)) {
+                <a href="@routes.HomeController.adminDashboard()" class="nav-link admin-link">
+                  <span class="nav-icon">👑</span> Admin
+                </a>
+              }
+              <a href="@routes.UserController.profile()" class="nav-link">
+                <span class="nav-icon">👤</span> Profile
+              </a>
+              <a href="@routes.AuthController.logout()" class="nav-link logout-link">
+                <span class="nav-icon">🚪</span> Logout
+              </a>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modern Add Task Form -->
+    <div class="modern-add-task">
+      <div class="add-task-card">
+        <h2 class="section-title">
+          <span class="section-icon">➕</span>
+          Add New Task
+        </h2>
+        <form id="add-task-form" class="modern-form">
+          <div class="input-group">
+            <input 
+              type="text" 
+              id="task-description-input" 
+              placeholder="What needs to be done?" 
+              class="modern-input"
+              maxlength="500"
+              required
+            >
+            <button type="submit" class="btn btn-primary btn-large">
+              <span class="btn-icon">🚀</span>
+              Add Task
+            </button>
+          </div>
+          <div class="input-hint">
+            <span class="hint-icon">💡</span>
+            Press Enter or click Add Task to create your task instantly
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modern Task List -->
+    <div class="modern-task-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="section-icon">📝</span>
+          Your Tasks
+          <span class="task-count" id="task-count">(@tasks.length)</span>
+        </h2>
+        <div class="section-actions">
+          <button class="btn btn-secondary" onclick="loadTasksWithNotification(true)" title="Refresh tasks">
+            <span class="btn-icon">🔄</span>
+            Refresh
+          </button>
+          <div class="view-toggle">
+            <button class="toggle-btn active" data-view="list" title="List view">
+              <span class="toggle-icon">📋</span>
+            </button>
+            <button class="toggle-btn" data-view="grid" title="Grid view">
+              <span class="toggle-icon">⊞</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task List Container -->
+      <div class="task-list-container">
+        <div id="modern-task-list" class="modern-task-list">
+          <!-- Tasks will be loaded here via AJAX -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Modern Statistics -->
+    <div class="modern-stats">
+      <div class="stats-card">
+        <div class="stat-item">
+          <div class="stat-icon">📊</div>
+          <div class="stat-content">
+            <div class="stat-number" id="total-tasks">@tasks.length</div>
+            <div class="stat-label">Total Tasks</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">📝</div>
+          <div class="stat-content">
+            <div class="stat-number" id="total-characters">
+              @if(tasks.nonEmpty) {
+                @tasks.map(_.description.length).sum
+              } else {
+                0
+              }
+            </div>
+            <div class="stat-label">Total Characters</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">📊</div>
+          <div class="stat-content">
+            <div class="stat-number" id="average-length">
+              @if(tasks.nonEmpty) {
+                @(tasks.map(_.description.length).sum / tasks.length)
+              } else {
+                0
+              }
+            </div>
+            <div class="stat-label">Avg Description Length</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay" style="display: none;">
+    <div class="loading-content">
+      <div class="spinner-large"></div>
+      <div class="loading-text">Processing your request...</div>
+    </div>
+  </div>
+
+  <!-- Modern Toast Notifications Container -->
+  <div class="notification-container"></div>
+}

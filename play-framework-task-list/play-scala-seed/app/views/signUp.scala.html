@@ -6,7 +6,6 @@
     <p class="text-center mb-20">Join Task Manager and start organizing your life</p>
 
     <form method="post" action="@routes.UserController.signUpValidate()">
-      @helper.CSRF.formField
       <div class="form-group">
         <label for="email">Email Address</label>
         <input type="email" id="email" name="email" required placeholder="your@@email.com">
