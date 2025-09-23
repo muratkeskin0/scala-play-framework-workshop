@@ -1,5 +1,6 @@
 package models
 
+
 sealed trait Country {
   def value: String
   def displayName: String

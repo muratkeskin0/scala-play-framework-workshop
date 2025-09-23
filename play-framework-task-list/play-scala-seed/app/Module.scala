@@ -23,6 +23,7 @@ class Module extends AbstractModule {
     bind(classOf[IEmailTemplateService]).to(classOf[EmailTemplateService]).asEagerSingleton()
     bind(classOf[IEmailHelperService]).to(classOf[EmailHelperService]).asEagerSingleton()
     bind(classOf[ISocialMediaInfoService]).to(classOf[SocialMediaInfoService]).asEagerSingleton()
+    bind(classOf[ISocialMediaFilterService]).to(classOf[SocialMediaFilterService]).asEagerSingleton()
     
     // Actor bindings
     bind(classOf[EmailActorManager]).asEagerSingleton()

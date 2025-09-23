@@ -3,8 +3,8 @@ package controllers
 import javax.inject._
 import play.api.mvc._
 import play.api.i18n.I18nSupport
-import services.{ISocialMediaInfoService, IUserService}
-import models.{User, Country}
+import services.{ISocialMediaInfoService, IUserService, ISocialMediaFilterService}
+import models.{User, Country, SocialMediaFilter}
 import security.SessionFactory
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -13,6 +13,7 @@ class SocialMediaInfoController @Inject()(
   val controllerComponents: ControllerComponents,
   socialMediaInfoService: ISocialMediaInfoService,
   userService: IUserService,
+  filterService: ISocialMediaFilterService,
   sessionFactory: SessionFactory
 )(implicit ec: ExecutionContext) extends BaseController with I18nSupport {
 
@@ -42,12 +43,20 @@ class SocialMediaInfoController @Inject()(
   def socialMediaGuidelines() = Action.async { implicit request =>
     getCurrentUser(request).flatMap {
       case Some(user) =>
-        // Get all social media guidelines
-        socialMediaInfoService.getAllActive().map { allInfo =>
-          Ok(views.html.allSocialMediaGuidelines(allInfo, Some(user)))
+        // Parse country filter from query parameters
+        val countryFilter = SocialMediaFilter.fromQueryParams(request.queryString)
+        
+        // Get filtered guidelines
+        filterService.getFilteredGuidelines(countryFilter).map { filteredInfos =>
+          Ok(views.html.allSocialMediaGuidelines(
+            filteredInfos, 
+            Some(user), 
+            countryFilter
+          ))
         }
       case None =>
         Future.successful(Redirect(routes.AuthController.login()).flashing("error" -> "Please login first"))
     }
   }
+  
 }
