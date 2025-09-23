@@ -37,6 +37,9 @@ POST    /api/tasks                controllers.TaskController.addTaskAjax()
 PUT     /api/tasks/:id            controllers.TaskController.updateTaskAjax(id: Long)
 DELETE  /api/tasks/:id            controllers.TaskController.deleteTaskAjax(id: Long)
 
+# Social Media Guidelines
+GET     /social-media-guidelines   controllers.SocialMediaInfoController.socialMediaGuidelines()
+
 # Admin dashboard
 GET     /admin/dashboard           controllers.HomeController.adminDashboard()
 POST    /admin/users/update        controllers.UserController.updateUser()

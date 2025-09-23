@@ -14,6 +14,7 @@ class Module extends AbstractModule {
     // Repository bindings
     bind(classOf[ITaskRepository]).to(classOf[TaskRepository]).asEagerSingleton()
     bind(classOf[IUserRepository]).to(classOf[UserRepository]).asEagerSingleton()
+    bind(classOf[ISocialMediaInfoRepository]).to(classOf[SocialMediaInfoRepository]).asEagerSingleton()
     
     // Service bindings
     bind(classOf[ITaskService]).to(classOf[TaskService]).asEagerSingleton()
@@ -21,6 +22,7 @@ class Module extends AbstractModule {
     bind(classOf[IEmailService]).to(classOf[EmailService]).asEagerSingleton()
     bind(classOf[IEmailTemplateService]).to(classOf[EmailTemplateService]).asEagerSingleton()
     bind(classOf[IEmailHelperService]).to(classOf[EmailHelperService]).asEagerSingleton()
+    bind(classOf[ISocialMediaInfoService]).to(classOf[SocialMediaInfoService]).asEagerSingleton()
     
     // Actor bindings
     bind(classOf[EmailActorManager]).asEagerSingleton()

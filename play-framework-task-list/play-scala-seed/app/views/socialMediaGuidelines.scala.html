@@ -1,0 +1,69 @@
+@(info: models.SocialMediaInfo, user: Option[models.User])(implicit flash: Flash, request: RequestHeader)
+
+@main("Social Media Guidelines") {
+  <div class="container">
+    <div class="nav">
+      <h1>Social Media Guidelines</h1>
+      <div class="nav-links">
+        @if(user.isDefined) {
+          @if(user.get.role == models.Role.Admin) {
+            <a href="@routes.HomeController.adminDashboard()">Admin Dashboard</a>
+          }
+          <a href="@routes.TaskController.taskList()">Task List</a>
+          <a href="@routes.UserController.profile()">Profile</a>
+          <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()">Refresh</a>
+          <a href="@routes.AuthController.logout()">Logout</a>
+        }
+      </div>
+    </div>
+
+    @if(flash.get("success").isDefined) {
+      <div class="alert alert-success">
+        @flash.get("success")
+      </div>
+    }
+
+    @if(flash.get("error").isDefined) {
+      <div class="alert alert-danger">
+        @flash.get("error")
+      </div>
+    }
+
+    <div class="guidelines-container">
+      <div class="guidelines-header">
+        <div class="country-badge">
+          <span class="country-flag">🌍</span>
+          <span class="country-name">@info.country.displayName</span>
+        </div>
+        <h2>@info.title</h2>
+        <p class="guidelines-subtitle">Important social media guidelines and regulations for your country</p>
+      </div>
+
+      <div class="guidelines-content">
+        <div class="guidelines-card">
+          <div class="guidelines-body">
+            @Html(info.content)
+          </div>
+        </div>
+
+        <div class="guidelines-footer">
+          <div class="last-updated">
+            <i class="icon">📅</i>
+            <span>Last updated: @info.createdAt.format(java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy"))</span>
+          </div>
+          
+          <div class="guidelines-actions">
+            <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()" class="btn btn-outline-primary">
+              <i class="icon">🔄</i>
+              Refresh
+            </a>
+            <a href="@routes.TaskController.taskList()" class="btn btn-primary">
+              <i class="icon">📋</i>
+              Back to Tasks
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

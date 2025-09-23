@@ -1,0 +1,88 @@
+@(allInfo: Seq[models.SocialMediaInfo], user: Option[models.User])(implicit flash: Flash, request: RequestHeader)
+
+@main("All Social Media Guidelines") {
+  <div class="container">
+    <div class="nav">
+      <h1>All Social Media Guidelines</h1>
+      <div class="nav-links">
+        @if(user.isDefined) {
+          @if(user.get.role == models.Role.Admin) {
+            <a href="@routes.HomeController.adminDashboard()">Admin Dashboard</a>
+          }
+          <a href="@routes.TaskController.taskList()">Task List</a>
+          <a href="@routes.UserController.profile()">Profile</a>
+          <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()">Refresh</a>
+          <a href="@routes.AuthController.logout()">Logout</a>
+        }
+      </div>
+    </div>
+
+    @if(flash.get("success").isDefined) {
+      <div class="alert alert-success">
+        @flash.get("success")
+      </div>
+    }
+
+    @if(flash.get("error").isDefined) {
+      <div class="alert alert-danger">
+        @flash.get("error")
+      </div>
+    }
+
+    <div class="all-guidelines-container">
+      <div class="guidelines-header">
+        <h2>Social Media Guidelines by Country</h2>
+        <p class="guidelines-subtitle">Explore social media regulations and guidelines for different countries</p>
+      </div>
+
+      @if(allInfo.isEmpty) {
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <h3>No Guidelines Available</h3>
+          <p>There are currently no social media guidelines available.</p>
+        </div>
+      } else {
+        <div class="guidelines-grid">
+          @for(info <- allInfo) {
+            <div class="guideline-card">
+              <div class="guideline-header">
+                <div class="country-badge">
+                  <span class="country-flag">🌍</span>
+                  <span class="country-name">@info.country.displayName</span>
+                </div>
+                <h3>@info.title</h3>
+              </div>
+              
+              <div class="guideline-content">
+                <div class="guideline-preview">
+                  @Html(info.content.take(200) + (if(info.content.length > 200) "..." else ""))
+                </div>
+                
+                <div class="guideline-footer">
+                  <div class="last-updated">
+                    <i class="icon">📅</i>
+                    <span>@info.createdAt.format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy"))</span>
+                  </div>
+                  
+                  <div class="guideline-actions">
+                    <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()" class="btn btn-sm btn-outline-primary">
+                      <i class="icon">👁️</i>
+                      View All
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="guidelines-actions">
+        <a href="@routes.TaskController.taskList()" class="btn btn-primary">
+          <i class="icon">📋</i>
+          Back to Tasks
+        </a>
+      </div>
+    </div>
+  </div>
+}
