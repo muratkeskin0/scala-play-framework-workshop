@@ -3,7 +3,7 @@ package repositories
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 import slick.jdbc.SQLServerProfile.api._
-import models.{User, Role}
+import models.{User, Role, Country}
 import configurations.Users
 import persistence._
 
@@ -42,8 +42,8 @@ class UserRepository @Inject()(dbService: IDatabaseService)(implicit ec: Executi
 
   override def update(user: User): Future[Int] = {
     val q = users.filter(_.id === user.id)
-      .map(u => (u.email, u.password, u.role))
-      .update((user.email, user.password, Role.toString(user.role)))
+      .map(u => (u.email, u.password, u.role, u.country))
+      .update((user.email, user.password, Role.toString(user.role), Country.toString(user.country)))
     dbService.run(q)
   }
 

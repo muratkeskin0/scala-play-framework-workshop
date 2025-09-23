@@ -36,13 +36,14 @@ object UserError {
 }
 
 trait IUserService {
-  def signUp(email: String, password: String): Future[Either[UserError, User]]
+  def signUp(email: String, password: String, country: Country): Future[Either[UserError, User]]
   def login(email: String, password: String): Future[Either[UserError, User]]
   def authenticate(email: String, password: String): Future[Option[User]]
   def get(email: String): Future[Option[User]]
   def getByEmail(email: String): Future[Option[User]]
   def list(): Future[Seq[User]]
   def updateEmail(currentEmail: String, newEmail: String): Future[Either[UserError, User]]
+  def updateProfile(currentEmail: String, newEmail: String, country: Country): Future[Either[UserError, User]]
   def changePassword(email: String, currentPassword: String, newPassword: String): Future[Either[UserError, User]]
   def updateUser(user: User): Future[Boolean]
   def deleteUser(id: Long): Future[Boolean]
@@ -55,7 +56,7 @@ class UserService @Inject()(repo: IUserRepository, emailHelper: IEmailHelperServ
   private def validPassword(password: String): Boolean =
     password.nonEmpty && password.length >= 6
 
-  override def signUp(email: String, password: String): Future[Either[UserError, User]] = {
+  override def signUp(email: String, password: String, country: Country): Future[Either[UserError, User]] = {
     EmailValidator.validateAndNormalize(email) match {
       case None => Future.successful(Left(InvalidEmail))
       case Some(normalizedEmail) =>
@@ -64,7 +65,7 @@ class UserService @Inject()(repo: IUserRepository, emailHelper: IEmailHelperServ
           repo.getByEmail(normalizedEmail).flatMap {
             case Some(_) => Future.successful(Left(AlreadyExists(normalizedEmail)))
             case None =>
-              val draft = User(id = 0L, email = normalizedEmail, password = password)
+              val draft = User(id = 0L, email = normalizedEmail, password = password, country = country)
               repo.create(draft).map { newId =>
                 if (newId > 0) {
                   val createdUser = draft.copy(id = newId)
@@ -135,6 +136,39 @@ class UserService @Inject()(repo: IUserRepository, emailHelper: IEmailHelperServ
               repo.getByEmail(currentEmail).flatMap {
                 case Some(user) =>
                   val updatedUser = user.copy(email = normalizedNewEmail)
+                  repo.update(updatedUser).map { affected =>
+                    if (affected > 0) Right(updatedUser) else Left(InvalidInput)
+                  }
+                case None => Future.successful(Left(NotFound(currentEmail)))
+              }
+          }
+        }
+    }
+  }
+
+  override def updateProfile(currentEmail: String, newEmail: String, country: Country): Future[Either[UserError, User]] = {
+    EmailValidator.validateAndNormalize(newEmail) match {
+      case None => Future.successful(Left(InvalidEmail))
+      case Some(normalizedNewEmail) =>
+        if (normalizedNewEmail == currentEmail) {
+          // Only update country if email is the same
+          repo.getByEmail(currentEmail).flatMap {
+            case Some(user) =>
+              val updatedUser = user.copy(country = country)
+              repo.update(updatedUser).map { affected =>
+                if (affected > 0) Right(updatedUser) else Left(InvalidInput)
+              }
+            case None => Future.successful(Left(NotFound(currentEmail)))
+          }
+        } else {
+          // Check if new email already exists
+          repo.getByEmail(normalizedNewEmail).flatMap {
+            case Some(_) => Future.successful(Left(EmailAlreadyExists))
+            case None =>
+              // Get current user and update both email and country
+              repo.getByEmail(currentEmail).flatMap {
+                case Some(user) =>
+                  val updatedUser = user.copy(email = normalizedNewEmail, country = country)
                   repo.update(updatedUser).map { affected =>
                     if (affected > 0) Right(updatedUser) else Left(InvalidInput)
                   }

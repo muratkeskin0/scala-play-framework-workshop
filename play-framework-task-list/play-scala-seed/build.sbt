@@ -23,16 +23,11 @@ libraryDependencies ++= Seq(
   // Email sending
   "com.typesafe.play" %% "play-mailer" % "8.0.1",
   "com.typesafe.play" %% "play-mailer-guice" % "8.0.1",
-)
-
-libraryDependencies ++= Seq(
-  // Play entegrasyonu (Scala artefact → %%)
+  
+  // Pac4j security - Compatible versions
   "org.pac4j" %% "play-pac4j" % "9.0.0",
-
-  // pac4j çekirdek modülleri (Java artefact → %)
-  "org.pac4j" %  "pac4j-core" % "4.5.7",
-  "org.pac4j" %  "pac4j-http" % "4.5.7",
-  "org.pac4j" %  "pac4j-jwt"  % "4.5.7",
+  "org.pac4j" % "pac4j-http" % "4.5.7",
+  "org.pac4j" % "pac4j-core" % "4.5.7"
 )
 
 // Play cache for Pac4j (Caffeine implementation)

@@ -2,8 +2,11 @@
 
 <div class="user-card" onclick="showUserDetails(@user.id)">
   <div class="user-email">@user.email</div>
-  <div class="user-role">
-    <span class="role-badge @user.role.value">@user.role.value.toUpperCase</span>
+  <div class="user-info">
+    <div class="user-country">@user.country.displayName</div>
+    <div class="user-role">
+      <span class="role-badge @user.role.value">@user.role.value.toUpperCase</span>
+    </div>
   </div>
   <div class="user-actions">
     <button onclick="event.stopPropagation(); toggleEdit(@user.id);" class="btn btn-sm btn-outline-primary">Edit</button>

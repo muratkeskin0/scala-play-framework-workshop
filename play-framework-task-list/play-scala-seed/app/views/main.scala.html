@@ -4,7 +4,7 @@
  * two arguments, a `String` for the title of the page and an `Html`
  * object to insert into the body of the page.
  *@
-@(title: String)(content: Html)(implicit flash : Flash)
+@(title: String)(content: Html)(implicit flash : Flash, request: RequestHeader)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -15,6 +15,9 @@
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
         <!-- jQuery CDN for AJAX functionality -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+        
+        <!-- CSRF Token for AJAX requests -->
+        <meta name="csrf-token" content="@helper.CSRF.getToken.value">
 
     </head>
     <body>

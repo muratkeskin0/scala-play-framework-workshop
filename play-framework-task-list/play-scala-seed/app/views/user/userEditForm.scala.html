@@ -1,4 +1,5 @@
 @(user: models.User)(implicit request: play.api.mvc.RequestHeader)
+@import models.Country
 
 @helper.form(action = routes.UserController.updateUser()) {
   @helper.CSRF.formField
@@ -7,6 +8,14 @@
     <div class="form-group">
       <label for="email-@user.id">Email:</label>
       <input type="email" name="email" id="email-@user.id" value="@user.email" required class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="country-@user.id">Country:</label>
+      <select name="country" id="country-@user.id" class="form-control">
+        @for(country <- Country.allCountries) {
+          <option value="@country.value" @if(country == user.country){selected}>@country.displayName</option>
+        }
+      </select>
     </div>
     <div class="form-group">
       <label for="role-@user.id">Role:</label>

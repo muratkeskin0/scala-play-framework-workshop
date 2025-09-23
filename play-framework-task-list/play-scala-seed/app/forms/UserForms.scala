@@ -3,12 +3,13 @@ package forms
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
+import models.Country
 
 object UserForms {
 
   case class LoginData(email: String, password: String)
-  case class SignUpData(email: String, password: String, confirmPassword: String)
-  case class UpdateProfileData(email: String)
+  case class SignUpData(email: String, password: String, confirmPassword: String, country: String)
+  case class UpdateProfileData(email: String, country: String)
   case class ChangePasswordData(currentPassword: String, newPassword: String, confirmPassword: String)
 
   val loginForm: Form[LoginData] = Form(
@@ -22,14 +23,16 @@ object UserForms {
     mapping(
       "email" -> email.verifying(nonEmpty, maxLength(255)),
       "password" -> nonEmptyText(minLength = 6, maxLength = 100),
-      "confirmPassword" -> nonEmptyText(minLength = 6, maxLength = 100)
+      "confirmPassword" -> nonEmptyText(minLength = 6, maxLength = 100),
+      "country" -> nonEmptyText.verifying("Invalid country", country => Country.fromString(country).isDefined)
     )(SignUpData.apply)(SignUpData.unapply)
       .verifying("Passwords do not match", data => data.password == data.confirmPassword)
   )
 
   val updateProfileForm: Form[UpdateProfileData] = Form(
     mapping(
-      "email" -> email.verifying(nonEmpty, maxLength(255))
+      "email" -> email.verifying(nonEmpty, maxLength(255)),
+      "country" -> nonEmptyText.verifying("Invalid country", country => Country.fromString(country).isDefined)
     )(UpdateProfileData.apply)(UpdateProfileData.unapply)
   )
 

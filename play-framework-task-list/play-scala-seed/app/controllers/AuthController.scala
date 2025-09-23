@@ -11,19 +11,19 @@ import services.IUserService
 import security.{SecurityModule, SessionFactory}
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.core.config.Config
-import org.pac4j.play.PlayWebContext
+import org.pac4j.play.{PlayWebContext}
 import org.pac4j.play.store.PlaySessionStore
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 class AuthController @Inject()(
-  userService: IUserService,
-  securityModule: SecurityModule,
-  sessionFactory: SessionFactory,
-  val controllerComponents: ControllerComponents,
-  config: Config,
-  sessionStore: PlaySessionStore
-)(implicit ec: ExecutionContext) extends BaseController {
-
+                                userService: IUserService,
+                                securityModule: SecurityModule,
+                                sessionFactory: SessionFactory,
+                                val controllerComponents: ControllerComponents,
+                                config: Config,
+                                sessionStore: PlaySessionStore
+                              )(implicit ec: ExecutionContext) extends BaseController {
 
   // Login form
   val loginForm = Form(
@@ -36,88 +36,52 @@ class AuthController @Inject()(
   case class LoginData(email: String, password: String)
 
   def login() = Action { implicit request =>
+    println(s"🔄 AuthController: Serving login page")
     Ok(views.html.login())
   }
 
   def authenticate() = Action.async { implicit request =>
-    loginForm.bindFromRequest().fold(
-      formWithErrors => {
-        Future.successful(
-          Redirect(routes.AuthController.login())
-            .flashing("error" -> "Please enter valid email and password.")
-        )
-      },
-      loginData => {
-        println(s"🔄 AuthController: Processing authentication for ${loginData.email}")
-        
-        userService.authenticate(loginData.email, loginData.password).map {
-          case Some(user) =>
-            println(s"✅ AuthController: User authenticated successfully: ${user.email}")
-            
-            // Create Pac4j profile using SessionFactory
-            val webContext = sessionFactory.createWebContext(request)
-            println(s"🏭 AuthController: Created WebContext using SessionFactory for user: ${user.email}")
-            
-            val profile = new CommonProfile()
-            profile.setId(user.email)
-            profile.addAttribute("email", user.email)
-            profile.addAttribute("userId", user.id.toString)
-            profile.addAttribute("username", user.email.split("@").head)
-            profile.addAttribute("role", user.role.value)
-            println(s"🏭 AuthController: Created CommonProfile with ID: ${profile.getId}, role: ${profile.getAttribute("role")}")
-            
-            // Save profile using SessionFactory
-            val saveSuccess = sessionFactory.saveProfile(webContext, profile)
-            if (saveSuccess) {
-              println(s"✅ AuthController: Profile saved successfully using SessionFactory for user: ${user.email}")
-            } else {
-              println(s"❌ AuthController: Failed to save profile using SessionFactory for user: ${user.email}")
-            }
-            
-            // Also save profile data directly to Play session as backup
-            val profileData = Map(
-              "profileId" -> profile.getId,
-              "profileEmail" -> profile.getAttribute("email").toString,
-              "profileRole" -> profile.getAttribute("role").toString,
-              "profileUserId" -> profile.getAttribute("userId").toString
-            )
-            println(s"🔧 AuthController: Storing profile data in Play session: $profileData")
-            
-            // Store all data in session including profile data
-            val session = request.session ++ Map(
-              "email" -> user.email,
-              "userId" -> user.id.toString,
-              "username" -> user.email.split("@").head,
-              "role" -> user.role.value
-            ) ++ profileData
-            
-            Redirect(routes.TaskController.taskList())
-              .withSession(session)
-              .flashing("success" -> "Login successful!")
-          case None =>
-            println(s"❌ AuthController: Authentication failed for: ${loginData.email}")
-            Redirect(routes.AuthController.login())
-              .flashing("error" -> "Invalid email or password.")
-        }.recover { case e =>
-          println(s"❌ AuthController: Authentication error: ${e.getMessage}")
-          Redirect(routes.AuthController.login())
-            .flashing("error" -> "Authentication error.")
-        }
-      }
-    )
+    println(s"🔄 AuthController: authenticate() called")
+    println(s"🔄 AuthController: Request path: ${request.path}")
+    println(s"🔄 AuthController: Request method: ${request.method}")
+    println(s"🔄 AuthController: Request body: ${request.body}")
+
+    // Extract form data to ensure it's present
+    request.body.asFormUrlEncoded match {
+      case Some(formData) =>
+        println(s"🔄 AuthController: Form data received: ${formData.keys}")
+
+        // Store credentials in session and redirect to callback
+        val email = formData.getOrElse("email", List("")).head
+        val password = formData.getOrElse("password", List("")).head
+
+        Future.successful(Redirect(routes.CallbackController.callback()).withSession(
+          request.session +
+            ("email" -> email) +
+            ("password" -> password)
+        ))
+
+      case None =>
+        println(s"❌ AuthController: No form data received")
+        Future.successful(Redirect(routes.AuthController.login())
+          .flashing("error" -> "Please fill in all fields"))
+    }
   }
 
   def logout() = Action.async { implicit request =>
     Future {
       try {
-        println(s"🔄 AuthController: Processing Pac4j logout")
-        
+        println(s"🔄 AuthController: Processing logout")
+
         val webContext = new PlayWebContext(request, sessionStore)
-        
+
         // Clear Pac4j session
-        val profileManager = new org.pac4j.core.profile.ProfileManager(webContext, sessionStore)
+        val profileManager = new org.pac4j.core.profile.ProfileManager(webContext)
         profileManager.remove(true)
-        
+
+        // Also clear session store directly
+        sessionStore.destroySession(webContext)
+
         println(s"✅ AuthController: Logout processed successfully")
         Redirect(routes.AuthController.login())
           .withNewSession

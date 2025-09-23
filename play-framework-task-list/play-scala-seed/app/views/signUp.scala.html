@@ -1,4 +1,5 @@
 @()(implicit request : RequestHeader, flash : Flash)
+@import models.Country
 
 @main("Sign Up") {
   <div class="auth-form">
@@ -6,6 +7,7 @@
     <p class="text-center mb-20">Join Task Manager and start organizing your life</p>
 
     <form method="post" action="@routes.UserController.signUpValidate()">
+      @helper.CSRF.formField
       <div class="form-group">
         <label for="email">Email Address</label>
         <input type="email" id="email" name="email" required placeholder="your@@email.com">
@@ -17,6 +19,15 @@
       <div class="form-group">
         <label for="confirmPassword">Confirm Password</label>
         <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6" placeholder="Confirm your password">
+      </div>
+      <div class="form-group">
+        <label for="country">Country</label>
+        <select id="country" name="country" required>
+          <option value="">Select your country</option>
+          @for(country <- Country.allCountries) {
+            <option value="@country.value">@country.displayName</option>
+          }
+        </select>
       </div>
       <button type="submit" class="btn btn-success">Create Account</button>
     </form>
