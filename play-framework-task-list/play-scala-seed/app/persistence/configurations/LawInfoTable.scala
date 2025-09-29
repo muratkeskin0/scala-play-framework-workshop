@@ -1,10 +1,10 @@
 package configurations
 
 import slick.jdbc.SQLServerProfile.api._
-import models.{SocialMediaInfo, Country}
+import models.{LawInfo, Country}
 import java.time.LocalDateTime
 
-class SocialMediaInfoTable(tag: Tag) extends Table[SocialMediaInfo](tag, "SOCIAL_MEDIA_INFO") {
+class LawInfoTable(tag: Tag) extends Table[LawInfo](tag, "LAW_INFO") {
   def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
   def country = column[String]("COUNTRY")
   def title = column[String]("TITLE")
@@ -14,11 +14,11 @@ class SocialMediaInfoTable(tag: Tag) extends Table[SocialMediaInfo](tag, "SOCIAL
 
   def * = (id, country, title, content, isActive, createdAt) <> (
     { case (id, countryStr, title, content, isActive, createdAt) => 
-        SocialMediaInfo(id, Country.fromString(countryStr).getOrElse(Country.Other), title, content, isActive, createdAt) },
-    (info: SocialMediaInfo) => Some((info.id, Country.toString(info.country), info.title, info.content, info.isActive, info.createdAt))
+        LawInfo(id, Country.fromString(countryStr).getOrElse(Country.Other), title, content, isActive, createdAt) },
+    (info: LawInfo) => Some((info.id, Country.toString(info.country), info.title, info.content, info.isActive, info.createdAt))
   )
 }
 
-object SocialMediaInfoTable {
-  val socialMediaInfo = TableQuery[SocialMediaInfoTable]
+object LawInfoTable {
+  val lawInfo = TableQuery[LawInfoTable]
 }

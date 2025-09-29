@@ -1,9 +1,9 @@
-@(info: models.SocialMediaInfo, user: Option[models.User])(implicit flash: Flash, request: RequestHeader)
+@(info: models.LawInfo, user: Option[models.User])(implicit flash: Flash, request: RequestHeader)
 
-@main("Social Media Guidelines") {
+@main("Country Law Information") {
   <div class="container">
     <div class="nav">
-      <h1>Social Media Guidelines</h1>
+      <h1>Country Law Information</h1>
       <div class="nav-links">
         @if(user.isDefined) {
           @if(user.get.role == models.Role.Admin) {
@@ -11,7 +11,7 @@
           }
           <a href="@routes.TaskController.taskList()">Task List</a>
           <a href="@routes.UserController.profile()">Profile</a>
-          <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()">Refresh</a>
+          <a href="@routes.LawInfoController.countryLaws()">Refresh</a>
           <a href="@routes.AuthController.logout()">Logout</a>
         }
       </div>
@@ -32,11 +32,11 @@
     <div class="guidelines-container">
       <div class="guidelines-header">
         <div class="country-badge">
-          <span class="country-flag">🌍</span>
+          <span class="country-flag">⚖️</span>
           <span class="country-name">@info.country.displayName</span>
         </div>
         <h2>@info.title</h2>
-        <p class="guidelines-subtitle">Important social media guidelines and regulations for your country</p>
+        <p class="guidelines-subtitle">Important laws and legal regulations for your country</p>
       </div>
 
       <div class="guidelines-content">
@@ -53,7 +53,7 @@
           </div>
           
           <div class="guidelines-actions">
-            <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()" class="btn btn-outline-primary">
+            <a href="@routes.LawInfoController.countryLaws()" class="btn btn-outline-primary">
               <i class="icon">🔄</i>
               Refresh
             </a>

@@ -1,6 +1,6 @@
 package models
 
-final case class SocialMediaInfo(
+final case class LawInfo(
   id: Long = 0L,
   country: Country,
   title: String,

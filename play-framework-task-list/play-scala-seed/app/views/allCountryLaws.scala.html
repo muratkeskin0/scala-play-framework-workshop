@@ -1,9 +1,9 @@
-@(allInfo: Seq[models.SocialMediaInfo], user: Option[models.User], currentFilter: Option[models.SocialMediaFilter] = None)(implicit flash: Flash, request: RequestHeader)
+@(allInfo: Seq[models.LawInfo], user: Option[models.User], currentFilter: Option[models.LawFilter] = None)(implicit flash: Flash, request: RequestHeader)
 
-@main("All Social Media Guidelines") {
+@main("Country Laws Database") {
   <div class="container">
     <div class="nav">
-      <h1>All Social Media Guidelines</h1>
+      <h1>Country Laws Database</h1>
       <div class="nav-links">
         @if(user.isDefined) {
           @if(user.get.role == models.Role.Admin) {
@@ -11,7 +11,7 @@
           }
           <a href="@routes.TaskController.taskList()">Task List</a>
           <a href="@routes.UserController.profile()">Profile</a>
-          <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()">Refresh</a>
+          <a href="@routes.LawInfoController.countryLaws()">Refresh</a>
           <a href="@routes.AuthController.logout()">Logout</a>
         }
       </div>
@@ -31,17 +31,17 @@
 
     <div class="all-guidelines-container">
       <div class="guidelines-header">
-        <h2>Social Media Guidelines by Country</h2>
-        <p class="guidelines-subtitle">Explore social media regulations and guidelines for different countries</p>
+        <h2>Country Laws and Regulations</h2>
+        <p class="guidelines-subtitle">Explore laws and legal regulations for different countries</p>
         
         @if(user.isDefined) {
           <div class="filter-buttons">
-            <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()" 
+            <a href="@routes.LawInfoController.countryLaws()" 
                class="filter-btn @if(currentFilter.isEmpty){active}">
               <i class="icon">🌍</i>
               All Countries
             </a>
-            <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()?country=@user.get.country.value" 
+            <a href="@routes.LawInfoController.countryLaws()?country=@user.get.country.value" 
                class="filter-btn @if(currentFilter.exists(_.name == s"country-${user.get.country.value}")){active}">
               <i class="icon">🏠</i>
               My Country (@user.get.country.displayName)
@@ -52,16 +52,16 @@
 
       @if(allInfo.isEmpty) {
         <div class="empty-state">
-          <div class="empty-icon">📋</div>
-          <h3>No Guidelines Available</h3>
+          <div class="empty-icon">⚖️</div>
+          <h3>No Laws Available</h3>
           @if(currentFilter.exists(_.name.startsWith("country-"))) {
-            <p>No specific guidelines found for @user.get.country.displayName. Try viewing all countries instead.</p>
-            <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()" class="btn btn-primary">
+            <p>No specific laws found for @user.get.country.displayName. Try viewing all countries instead.</p>
+            <a href="@routes.LawInfoController.countryLaws()" class="btn btn-primary">
               <i class="icon">🌍</i>
               View All Countries
             </a>
           } else {
-            <p>There are currently no social media guidelines available.</p>
+            <p>There are currently no laws available in the database.</p>
           }
         </div>
       } else {
@@ -70,7 +70,7 @@
             <div class="guideline-card">
               <div class="guideline-header">
                 <div class="country-badge">
-                  <span class="country-flag">🌍</span>
+                  <span class="country-flag">⚖️</span>
                   <span class="country-name">@info.country.displayName</span>
                 </div>
                 <h3>@info.title</h3>
@@ -88,7 +88,7 @@
                   </div>
                   
                   <div class="guideline-actions">
-                    <a href="@routes.SocialMediaInfoController.socialMediaGuidelines()" class="btn btn-sm btn-outline-primary">
+                    <a href="@routes.LawInfoController.countryLaws()" class="btn btn-sm btn-outline-primary">
                       <i class="icon">👁️</i>
                       View All
                     </a>
